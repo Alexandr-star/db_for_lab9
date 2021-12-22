@@ -24,7 +24,6 @@ DROP SEQUENCE Skvortsov_Product_Uid_Seq;
 -- DROP TRIGGER Skvortsov_Tr_Insert_Order;
 -- DROP TRIGGER Skvortsov_Tr_Drop_Empty_Order;
 -- DROP TRIGGER Skvortsov_Tr_Prod_To_Stock;
--- DROP TRIGGER Skvortsov_Tr_Add_Product_In_Order;
 -- DROP TRIGGER Skvortsov_Tr_Insert_Ord_Prod;
 -- DROP TRIGGER Skvortsov_Tr_Delete_Ord_Prod;
 -- DROP TRIGGER Skvortsov_Tr_Give_Discount;
@@ -367,7 +366,6 @@ ALTER TABLE Skvortsov_Ordered_Product MODIFY (quantity NOT NULL ENABLE);
 
 
 set serveroutput on
-
 
 
 CREATE OR REPLACE PACKAGE Skvortsov_Store_Package AS
@@ -718,32 +716,37 @@ BEGIN
 END;
 /
 CREATE OR REPLACE TRIGGER Skvortsov_Tr_Insert_Ord_Prod
-BEFORE INSERT OR UPDATE OF order_uid, product_uid, product_price, quantity ON Skvortsov_Ordered_Product
+BEFORE INSERT OR UPDATE OF product_price, quantity ON Skvortsov_Ordered_Product
     FOR EACH ROW
 DECLARE
     quantity_in_stock NUMBER;
     product_price NUMBER;
+    order_status NUMBER;
 BEGIN
     SELECT stock INTO quantity_in_stock FROM Skvortsov_Product
     WHERE product_uid = :new.product_uid;
     
-    IF INSERTING THEN
-        IF :new.quantity > quantity_in_stock OR :new.quantity <= 0 THEN
-            RAISE Skvortsov_Store_Package.E_INVALID_QUANTITY_OF_PRODUCTS;
+    SELECT COUNT(*) INTO order_status FROM skvortsov_order
+    WHERE order_uid = :new.order_uid AND status = 'Подготовка';
+    
+    IF order_status = 1 THEN
+        IF INSERTING THEN
+            IF :new.quantity > quantity_in_stock OR :new.quantity <= 0 THEN
+                RAISE Skvortsov_Store_Package.E_INVALID_QUANTITY_OF_PRODUCTS;
+            END IF;
+            SELECT price INTO product_price FROM Skvortsov_Product
+            WHERE product_uid = :new.product_uid;
+            
+            :new.product_price := product_price;
+        ELSIF UPDATING THEN
+            :new.quantity := :old.quantity + :new.quantity;
+            
+            IF :new.quantity > quantity_in_stock OR :new.quantity < 0 THEN
+                RAISE Skvortsov_Store_Package.E_INVALID_QUANTITY_OF_PRODUCTS;
+            END IF;
         END IF;
-        SELECT price INTO product_price FROM Skvortsov_Product
-        WHERE product_uid = :new.product_uid;
-        
-        :new.product_price := product_price;
-    ELSIF UPDATING THEN
-        :new.quantity := :old.quantity + :new.quantity;
-        
-        IF :new.quantity > quantity_in_stock OR :new.quantity < 0 THEN
-            RAISE Skvortsov_Store_Package.E_INVALID_QUANTITY_OF_PRODUCTS;
-        ELSIF :new.quantity = 0 THEN
-            DELETE skvortsov_ordered_product
-            WHERE order_uid = :new.order_uid AND product_uid = :new.product_uid;
-        END IF;
+    ELSE
+        RAISE Skvortsov_Store_Package.E_WRONG_ORDER_STATUS;
     END IF;
 END;
 /
