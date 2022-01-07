@@ -120,6 +120,7 @@ END;
 --  Create Data
 -------------------------------------------------------- 
 -- Inserting into Skvortsov_Client
+--------------------------------------------------------
 SET DEFINE OFF
 INSERT INTO Skvortsov_Client (login,name,sex,birthday,address,phone) VALUES ('klavdiya26021987','Селидова Клавдия','Ж',TO_DATE('26.02.1987','DD.MM.YYYY'),'Россия, г. Электросталь, Молодежный пер., д. 18 кв.145','+7(964)258-80-98');
 INSERT INTO Skvortsov_Client (login,name,sex,birthday,address,phone) VALUES ('afanasiy7796','Пищиков Афанасий','М',TO_DATE('22.11.1989','DD.MM.YYYY'),'Россия, г. Орехово-Зуево, Светлая ул., д. 1 кв.60','+7(974)698-39-88');
@@ -221,7 +222,10 @@ INSERT INTO Skvortsov_Client (login,name,sex,birthday,address,phone) VALUES ('le
 INSERT INTO Skvortsov_Client (login,name,sex,birthday,address,phone) VALUES ('albina07041977','Карева Альбина','Ж',TO_DATE('07.04.1977','DD.MM.YYYY'),'Россия, г. Муром, Спортивная ул., д. 25 кв.210','+7(968)610-10-16');
 INSERT INTO Skvortsov_Client (login,name,sex,birthday,address,phone) VALUES ('zoya23','Балдагуева Зоя','Ж',TO_DATE('06.07.1967','DD.MM.YYYY'),'Россия, г. Хасавюрт, Набережная ул., д. 3 кв.157','+7(951)821-29-55');
 INSERT INTO Skvortsov_Client (login,name,sex,birthday,address,phone) VALUES ('arina10121978','Зуба Арина','Ж',TO_DATE('10.12.1978','DD.MM.YYYY'),'Россия, г. Королёв, Светлая ул., д. 13 кв.27','+7(912)604-45-82');
+
+--------------------------------------------------------
 -- Inserting into Skvortsov_Product_Type
+--------------------------------------------------------
 SET DEFINE OFF
 INSERT INTO Skvortsov_Product_Type (product_type,name) VALUES ('Electronics','Электроника');
 INSERT INTO Skvortsov_Product_Type (product_type,name) VALUES ('Cloth','Одежда');
@@ -229,7 +233,9 @@ INSERT INTO Skvortsov_Product_Type (product_type,name) VALUES ('Shoes','Обув
 INSERT INTO Skvortsov_Product_Type (product_type,name) VALUES ('House','Дом');
 INSERT INTO Skvortsov_Product_Type (product_type,name) VALUES ('Pets','Товары для животных');
 
+--------------------------------------------------------
 -- Inserting into Skvortsov_Product
+--------------------------------------------------------
 SET DEFINE OFF
 INSERT INTO Skvortsov_Product (name,weight,height,width,length,price,product_type,stock) VALUES ('Смартфон',0.2,NULL,NULL,NULL,20000,'Electronics',100);
 INSERT INTO Skvortsov_Product (name,weight,height,width,length,price,product_type,stock) VALUES ('Наушники',0.02,NULL,NULL,NULL,5000,'Electronics',100);
@@ -282,6 +288,145 @@ INSERT INTO Skvortsov_Product (name,weight,height,width,length,price,product_typ
 INSERT INTO Skvortsov_Product (name,weight,height,width,length,price,product_type,stock) VALUES ('Поводок',0.5,NULL,NULL,NULL,590,'Pets',100);
 
 --------------------------------------------------------
+-- Inserting into Skvortsov_Order
+--------------------------------------------------------
+SET DEFINE OFF
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'zoya23','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'zoya23','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'zoya23','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'zoya23','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'grigoriy98','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'grigoriy98','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'grigoriy98','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'grigoriy98','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'arina48','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'milana1962','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'albina19061971','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'albina19061971','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'albina19061971','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'albina19061971','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'mihail1860','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'tatyana6418','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'maksim3779','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'maksim3779','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'german3591','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'german3591','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'german3591','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'antonina1976','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'antonina1976','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'antonina1976','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'ulyana9844','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'ulyana9844','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'ulyana9844','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'ulyana9844','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'anna1978','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'anna1978','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'anna1978','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'klara36','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'klara36','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'klara36','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'arseniy1984','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'arseniy1984','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'arseniy1984','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'nikolay7233','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'nikolay7233','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'nikolay7233','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'petr6941','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'petr6941','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'petr6941','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'petr6941','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'petr6941','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'alla1994','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'alla1994','Предоплата',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'alla1994','При получении',NULL,NULL,'Подготовка');
+INSERT INTO Skvortsov_Order (created_date,complited_date,client_uid,payment,delivery_price,discount,status) VALUES (NULL,NULL,'alla1994','Предоплата',NULL,NULL,'Подготовка');
+
+--------------------------------------------------------
+-- Inserting into Skvortsov_Order
+--------------------------------------------------------
+SET DEFINE OFF
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (1,28,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (1,27,NULL,8);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (1,7,NULL,2);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (2,47,NULL,10);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (2,10,NULL,9);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (3,11,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (4,1,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (4,3,NULL,10);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (4,48,NULL,9);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (5,22,NULL,3);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (5,45,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (6,34,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (6,26,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (6,31,NULL,5);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (6,9,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (8,9,NULL,3);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (8,38,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (8,48,NULL,3);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (9,13,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (11,47,NULL,2);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (13,7,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (13,29,NULL,8);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (13,28,NULL,9);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (13,23,NULL,2);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (13,35,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (14,25,NULL,7);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (14,21,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (16,19,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (16,14,NULL,9);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (16,34,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (17,13,NULL,10);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (17,31,NULL,2);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (18,2,NULL,5);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (18,20,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (18,9,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (21,11,NULL,2);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (21,5,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (24,10,NULL,10);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (24,43,NULL,7);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (24,22,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (25,13,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (25,44,NULL,3);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (26,17,NULL,8);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (27,25,NULL,2);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (27,23,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (27,7,NULL,7);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (30,9,NULL,3);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (30,31,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (30,10,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (30,24,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (32,12,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (32,39,NULL,3);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (33,18,NULL,2);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (33,15,NULL,7);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (34,17,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (34,26,NULL,5);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (34,30,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (34,32,NULL,3);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (35,3,NULL,8);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (35,9,NULL,5);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (35,33,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (38,12,NULL,2);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (38,19,NULL,7);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (39,33,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (39,49,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (42,27,NULL,3);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (44,33,NULL,2);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (44,28,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (45,20,NULL,5);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (45,29,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (45,30,NULL,3);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (46,37,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (46,44,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (46,17,NULL,1);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (46,3,NULL,5);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (47,29,NULL,6);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (47,47,NULL,7);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (47,12,NULL,4);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (48,9,NULL,3);
+INSERT INTO Skvortsov_Ordered_Product (order_uid,product_uid,product_price,quantity) VALUES  (48,46,NULL,2);
+
+--------------------------------------------------------
 --  Constraints for Table Skvortsov_Client
 -------------------------------------------------------- 
 ALTER TABLE Skvortsov_Client ADD CONSTRAINT Check_Client_sex CHECK(sex IN('М', 'Ж')) ENABLE;
@@ -298,9 +443,9 @@ ALTER TABLE Skvortsov_Client MODIFY (phone NOT NULL ENABLE);
 --  Constraints for Table Skvortsov_Order
 -------------------------------------------------------- 
 ALTER TABLE Skvortsov_Order ADD CONSTRAINT Check_Order_complited_date CHECK(complited_date >= created_date);
-ALTER TABLE Skvortsov_Order ADD CONSTRAINT Check_Order_payment  CHECK(payment IN ('Предоплата', 'При получении'));
+ALTER TABLE Skvortsov_Order ADD CONSTRAINT Check_Order_payment CHECK(payment IN ('Предоплата', 'При получении'));
 ALTER TABLE Skvortsov_Order ADD CONSTRAINT Check_Order_delivery_price CHECK(delivery_price < 1000.00 AND delivery_price >= 0);
-ALTER TABLE Skvortsov_Order ADD CONSTRAINT Check_Order_discount CHECK (discount <= 100 AND discount >=0);
+ALTER TABLE Skvortsov_Order ADD CONSTRAINT Check_Order_discount CHECK (discount < 100 AND discount >=0);
 ALTER TABLE Skvortsov_Order ADD CONSTRAINT Check_Order_status CHECK(status IN ('Подготовка', 'Создан', 'Оплачен', 'Комплектация', 'Отправлен', 'Получен', 'Отменён'));
 
 ALTER TABLE Skvortsov_Order ADD CONSTRAINT PK_Order PRIMARY KEY (order_uid) ENABLE;
@@ -310,8 +455,6 @@ ALTER TABLE Skvortsov_Order ADD CONSTRAINT FK_Order_Client FOREIGN KEY (client_u
 
 ALTER TABLE Skvortsov_Order MODIFY (order_uid NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Order MODIFY (client_uid NOT NULL ENABLE);
-ALTER TABLE Skvortsov_Order MODIFY (payment NOT NULL DISABLE);
-ALTER TABLE Skvortsov_Order MODIFY (delivery_price NOT NULL DISABLE);
 ALTER TABLE Skvortsov_Order MODIFY (status NOT NULL ENABLE);
 
 --------------------------------------------------------
@@ -340,9 +483,6 @@ ALTER TABLE Skvortsov_Product ADD CONSTRAINT FK_Product_Peoduct_Type FOREIGN KEY
 ALTER TABLE Skvortsov_Product MODIFY (product_uid NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Product MODIFY (name NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Product MODIFY (weight NOT NULL ENABLE);
-ALTER TABLE Skvortsov_Product MODIFY (height NOT NULL ENABLE);
-ALTER TABLE Skvortsov_Product MODIFY (width NOT NULL ENABLE);
-ALTER TABLE Skvortsov_Product MODIFY (length NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Product MODIFY (price NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Product MODIFY (product_type NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Product MODIFY (stock NOT NULL ENABLE);
@@ -362,7 +502,6 @@ ALTER TABLE Skvortsov_Ordered_Product ADD CONSTRAINT FK_Ord_Prod_Order FOREIGN K
 
 ALTER TABLE Skvortsov_Ordered_Product MODIFY (product_uid NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Ordered_Product MODIFY (order_uid NOT NULL ENABLE);
-ALTER TABLE Skvortsov_Ordered_Product MODIFY (product_price NOT NULL DISABLE);
 ALTER TABLE Skvortsov_Ordered_Product MODIFY (quantity NOT NULL ENABLE);
 
 
@@ -377,13 +516,14 @@ create or replace PACKAGE Skvortsov_Store_Package AS
     E_PRODUCT_NOT_EXIST EXCEPTION; -- Исключение об отсутствии продукта в базе
     E_INVALID_QUANTITY_OF_PRODUCTS EXCEPTION; -- Исключение об неверном количестве продуктов в заказе
     E_INVALID_DISCOUNT_FOR_ORDER EXCEPTION; -- Исключение о неверном значении скидки
+    E_INVALID_STATUS_FOR_DISCOUNT EXCEPTION; -- Исключение, о неверном статусе заказа для предоставления скидки
     E_ORDER_NOT_EXIST EXCEPTION; -- Исключение об отсутствии заказа в баезе
     E_WRONG_ORDER_STATUS EXCEPTION; -- Исключение о неверном статусе заказа
     E_NO_PREPARE_ORDERS EXCEPTION; -- Исключение об отсутсвии заказов со статусом Подготовка
     E_ORDER_IS_CANCELED EXCEPTION; -- Исключение о том, что заказ в статусе Отменен
     E_ORDER_IS_RECEIVED EXCEPTION; -- Исключение о том, что заказ в статусе Получен
     E_DONT_CANCEL_ORDER EXCEPTION; -- Исключение о том, что заказ не может быть отменен
-    E_WRONG_PHONE EXCEPTION;
+    E_WRONG_PHONE EXCEPTION; -- Исключение о неверном номере телефона
     
     E_WRONG_SEX EXCEPTION; -- Исключение об неверном поле клиента
     PRAGMA EXCEPTION_INIT (E_WRONG_SEX, -2290);
@@ -410,7 +550,7 @@ create or replace PACKAGE Skvortsov_Store_Package AS
     Процедура добавления продукта в заказ
     вход: номер заказа, номер товара, количество
     */
-    PROCEDURE Add_Product_In_Order(order_uid NUMBER, product_uid NUMBER, quantity NUMBER);
+    PROCEDURE Add_Product_In_Order(c_order_uid NUMBER, c_product_uid NUMBER, c_quantity NUMBER);
 
     /*
     Процедура движения заказа
@@ -452,6 +592,16 @@ create or replace PACKAGE Skvortsov_Store_Package AS
     вход: номер заказа, значение скидки
     */
     PROCEDURE Give_Discount(с_order_uid NUMBER, c_discount NUMBER);
+    
+    /*
+    Процедура выводит список заказов
+    */
+    PROCEDURE Get_Order_List;
+    
+    /*
+    Процедура выводит список клиентов
+    */
+    PROCEDURE Get_Client_List;
 END;
 /
 create or replace PACKAGE BODY Skvortsov_Store_Package AS
@@ -539,6 +689,37 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         RETURN products_count > 0;
     END Is_Product_In_Order_Exist;
 
+    FUNCTION Get_Order_Price(c_order_uid NUMBER) RETURN NUMBER
+    IS
+        order_price NUMBER := 0;
+        order_discount NUMBER;
+        order_delivery NUMBER;
+        CURSOR products (ord NUMBER) IS
+            SELECT product_price FROM Skvortsov_Ordered_Product
+            WHERE order_uid = ord;
+    BEGIN
+        FOR product IN products(c_order_uid)
+        LOOP
+            order_price := order_price + product.product_price;
+        END LOOP;
+
+        SELECT discount INTO order_discount FROM Skvortsov_Order
+        WHERE order_uid = c_order_uid;
+
+        SELECT delivery_price INTO order_delivery FROM Skvortsov_Order
+        WHERE order_uid = c_order_uid;
+
+        IF order_discount IS NOT NULL THEN
+            order_price := order_price * (1 - order_discount / 100);
+        END IF;
+
+        IF order_delivery IS NOT NULL THEN
+            order_price := order_price + order_discount;
+        END IF;
+
+        RETURN order_price;
+    END Get_Order_Price;
+
     /*
     Процедура добавления клиента
     вход: логин, имя, пол, день рождения, адресс, номер телефона
@@ -622,27 +803,27 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
     Процедура добавления продукта в заказ
     вход: номер заказа, номер товара, количество
     */
-    PROCEDURE Add_Product_In_Order(order_uid NUMBER, product_uid NUMBER, quantity NUMBER)
+    PROCEDURE Add_Product_In_Order(c_order_uid NUMBER, c_product_uid NUMBER, c_quantity NUMBER)
     IS
     BEGIN
-        IF NOT Is_Order_Exist(order_uid) THEN
+        IF NOT Is_Order_Exist(c_order_uid) THEN
             RAISE E_ORDER_NOT_EXIST;
-        ELSIF NOT Is_Product_Exist(product_uid) THEN
+        ELSIF NOT Is_Product_Exist(c_product_uid) THEN
             RAISE E_PRODUCT_NOT_EXIST;
         ELSE
             -- Если данный продукт уже есть в заказе, то мы добавляем указанное количество продукта
-            IF Is_Ordered_Product_Item_Exist(order_uid, product_uid) THEN
+            IF Is_Ordered_Product_Item_Exist(c_order_uid, c_product_uid) THEN
                 UPDATE Skvortsov_Ordered_Product 
-                SET quantity = quantity
-                WHERE order_uid = order_uid AND product_uid = product_uid;
+                SET quantity = c_quantity
+                WHERE order_uid = c_order_uid AND product_uid = c_product_uid;
                 
-                DBMS_OUTPUT.PUT_LINE('В заказе №'||order_uid||' увеличен продукт №'||product_uid||' на '||quantity||' шт.');
+                DBMS_OUTPUT.PUT_LINE('В заказе №'||c_order_uid||' увеличен продукт №'||c_product_uid||' на '||c_quantity||' шт.');
             -- Иначе создаем связь заказ-продукт
             ELSE
                 INSERT INTO Skvortsov_Ordered_Product (order_uid, product_uid, quantity)
-                VALUES (order_uid, product_uid, quantity);
+                VALUES (c_order_uid, c_product_uid, c_quantity);
                 
-                DBMS_OUTPUT.PUT_LINE('В заказ №'||order_uid||' добавлен продукт №'||product_uid||' в количестве '||quantity||' шт.');
+                DBMS_OUTPUT.PUT_LINE('В заказ №'||c_order_uid||' добавлен продукт №'||c_product_uid||' в количестве '||c_quantity||' шт.');
             END IF;
             
             COMMIT;
@@ -652,9 +833,9 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
             WHEN E_WRONG_ORDER_STATUS THEN
                 DBMS_OUTPUT.PUT_LINE('Неверный статус заказа.');
             WHEN E_PRODUCT_NOT_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Продукта с N'||product_uid||' нет в базе.');
+                DBMS_OUTPUT.PUT_LINE('Продукта с N'||c_product_uid||' нет в базе.');
             WHEN E_ORDER_NOT_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Заказа с N'||order_uid||' нет в базе.');
+                DBMS_OUTPUT.PUT_LINE('Заказа с N'||c_order_uid||' нет в базе.');
             WHEN E_INVALID_QUANTITY_OF_PRODUCTS THEN
                 DBMS_OUTPUT.PUT_LINE('Недопустимое количество товара.');
             WHEN OTHERS THEN
@@ -776,6 +957,8 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
                 DBMS_OUTPUT.PUT_LINE('E_WRONG_ORDER_STATUS.');
             WHEN E_INVALID_QUANTITY_OF_PRODUCTS THEN
                 DBMS_OUTPUT.PUT_LINE('E_INVALID_QUANTITY_OF_PRODUCTS.');
+            WHEN E_INVALID_STATUS_FOR_DISCOUNT THEN
+                DBMS_OUTPUT.PUT_LINE('E_INVALID_STATUS_FOR_DISCOUNT');
             WHEN E_ORDER_IS_RECEIVED THEN
                 DBMS_OUTPUT.PUT_LINE('Данный заказ уже получен.');
             WHEN E_ORDER_IS_CANCELED THEN
@@ -936,15 +1119,17 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
     PROCEDURE Give_Discount(с_order_uid NUMBER, c_discount NUMBER)
     IS
     BEGIN
-        IF Is_Order_Exist(с_order_uid) THEN
+        IF NOT Is_Order_Exist(с_order_uid) THEN
             RAISE E_ORDER_NOT_EXIST;
         ELSE
+        DBMS_OUTPUT.PUT_LINE(' заказ "'||с_order_uid||'".');
+        DBMS_OUTPUT.PUT_LINE(' скидка "'||c_discount||'".');
         -- выделяем скидку для заказа, если заказ создан
             UPDATE Skvortsov_Order
             SET discount = c_discount
-            WHERE order_uid = с_order_uid AND status = 'Создан';
+            WHERE order_uid = с_order_uid;
 
-        COMMIT;
+            COMMIT;
         
         END IF;
         EXCEPTION
@@ -952,9 +1137,65 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
                 DBMS_OUTPUT.PUT_LINE('Значение скидки "'||c_discount||'" недействительно.');
             WHEN E_ORDER_NOT_EXIST THEN
                 DBMS_OUTPUT.PUT_LINE('Заказа с N'||с_order_uid||' нет в базе.');
+            WHEN E_INVALID_STATUS_FOR_DISCOUNT THEN
+                DBMS_OUTPUT.PUT_LINE('Операция невозможна.');
             WHEN OTHERS THEN
                 DBMS_OUTPUT.PUT_LINE('Произошла ошибка при добовлении продукта.');
     END Give_Discount;
+
+    PROCEDURE Get_Order_List
+    IS
+        order_price NUMBER;
+        product_name VARCHAR2(100);
+        CURSOR orders IS 
+            SELECT order_uid, client_uid, created_date, complited_date, status FROM Skvortsov_Order
+            ORDER BY created_date DESC, status;
+        CURSOR products (ord NUMBER) IS
+            SELECT product_uid, quantity FROM Skvortsov_Ordered_Product
+            WHERE order_uid = ord;
+    BEGIN
+        FOR client_order IN orders
+        LOOP
+            DBMS_OUTPUT.PUT_LINE('Client: '||client_order.client_uid);
+            DBMS_OUTPUT.PUT_LINE('       Order: '||client_order.order_uid||' Status: '||client_order.status||' Create order: '||client_order.created_date||' Complite order: '||client_order.complited_date);
+    
+            order_price := Get_Order_Price(client_order.order_uid);
+            IF order_price = 0 OR order_price IS NULL THEN
+                DBMS_OUTPUT.PUT_LINE('       Price Order: значение отсутсвует');
+            ELSE
+                DBMS_OUTPUT.PUT_LINE('       Price Order: '||order_price);
+            END IF;
+        
+            DBMS_OUTPUT.PUT_LINE('       Products: ');
+            FOR order_product IN products(client_order.order_uid)
+            LOOP
+                SELECT name INTO product_name FROM skvortsov_product
+                WHERE product_uid = order_product.product_uid;
+                
+                DBMS_OUTPUT.PUT_LINE('              '||product_name||' '||order_product.quantity||' шт.');
+            END LOOP;
+
+        DBMS_OUTPUT.PUT_LINE('______________________________________________________________________________');
+        END LOOP;
+    END Get_Order_List;
+    
+    PROCEDURE Get_Client_List
+    IS
+        count_orders_complite NUMBER;
+        CURSOR clients IS 
+            SELECT * FROM Skvortsov_Client;
+    BEGIN
+        FOR cli IN clients
+        LOOP
+            DBMS_OUTPUT.PUT_LINE(' Клиент: '||cli.name);
+            DBMS_OUTPUT.PUT_LINE('     Тел.: '||cli.phone);
+            DBMS_OUTPUT.PUT_LINE('     Адресс: '||cli.address);
+
+            
+            DBMS_OUTPUT.PUT_LINE('______________________________________________________________________________');
+        END LOOP;
+    END Get_Client_List;
+
 END Skvortsov_Store_Package;
 /
 -- Триггер проверяет возраст и номер телефона при добавлении клиента
@@ -984,7 +1225,7 @@ DECLARE
 BEGIN
     IF :old.stock != :new.stock THEN
         :new.stock := :old.stock + :new.stock;
-    END IF
+    END IF;
 END;
 /
 -- Триггер выполняет некоторые проверки при добавлении и обновлении таблицы Заказ - Продукт
@@ -1079,7 +1320,7 @@ END;
 /
 -- Триггер обрабатывающий движение заказа
 create or replace TRIGGER Skvortsov_Tr_Move_Order
-BEFORE UPDATE ON Skvortsov_Order
+BEFORE UPDATE OF status ON Skvortsov_Order
     FOR EACH ROW
 DECLARE
     birthday_from DATE;     -- вспомогательные переменные, для получения диапазона дня рождения клиента
@@ -1098,58 +1339,81 @@ DECLARE
         SELECT product_uid, quantity, product_price FROM Skvortsov_Ordered_Product
         WHERE order_uid = ord;
 BEGIN
-    -- если заказ переходит в статус "Создан"
-    IF :old.status = 'Подготовка' AND :new.status = 'Создан' THEN
-        -- Вычисляем стоимость заказа
-        FOR product IN products(:old.order_uid)
-        LOOP
-            order_price := order_price + product.product_price;
-        END LOOP;
-        -- вичсляем стоимость заказа
-        delivery_p := (order_price * :old.discount / 100);
-        order_price := order_price - delivery_p;
-        
-        -- если цена меньше 3000 то 
-        IF order_price <= 3000 THEN
-            -- Расчитываем суммарный вес заказа
+    -- выполняем действия, если обновляется поле status
+    IF UPDATING('status') THEN
+        -- если заказ переходит в статус "Создан"
+        IF :old.status = 'Подготовка' AND :new.status = 'Создан' THEN
+            -- Вычисляем стоимость заказа
+                                    DBMS_OUTPUT.PUT_LINE('1');
+    
             FOR product IN products(:old.order_uid)
             LOOP
-                SELECT weight INTO product_weight FROM Skvortsov_Product
-                WHERE product_uid = product.product_uid;
-
-                sum_weight := sum_weight + product_weight;
+                order_price := order_price + product.product_price;
             END LOOP;
-
-            -- вычисляем стоимость доставки
-            :new.delivery_price := delivery_const + delivery_factor * (FLOOR(sum_weight / factor_kg));
-        ELSE
-            -- иначе доставка равна нулю
-            :new.delivery_price := 0;
-        END IF;
-    -- если заказ переходит из статуса "Создан"
-    ELSIF :old.status = 'Создан' THEN
-        :new.created_date := CURRENT_DATE; -- устанавливаем дату создания
-
-        -- вычисляем неделю до неделю после дня рождения
-        SELECT birthday INTO birthday FROM skvortsov_client
-        WHERE login = :old.client_uid;
-
-        birthday_from := birthday - 7;
-        birthday_to := birthday + 7;
-
-        -- если у клиента день рождение и старая скидка меньше праздничной,
-        -- то устанавливаем праздничную скидку
-        IF (:new.created_date BETWEEN birthday_from AND birthday_to)
-        AND :old.discount < birthday_discount THEN
-            :new.discount := birthday_discount;
-        END IF;
-    -- если заказ отменяют, то проверяем статус заказа
-    ELSIF :new.status = 'Отменён' THEN
-        IF :old.status IN ('Подготовка', 'Получен') THEN
-            DBMS_OUTPUT.PUT_LINE('Заказа в статусе'||:old.status);
-            RAISE Skvortsov_Store_Package.E_DONT_CANCEL_ORDER;
+            -- вичсляем стоимость заказа
+            delivery_p := (order_price * :old.discount / 100);
+            order_price := order_price - delivery_p;
+    
+            -- если цена меньше 3000 то 
+            IF order_price <= 3000 THEN
+                -- Расчитываем суммарный вес заказа
+                FOR product IN products(:old.order_uid)
+                LOOP
+                    SELECT weight INTO product_weight FROM Skvortsov_Product
+                    WHERE product_uid = product.product_uid;
+    
+                    sum_weight := sum_weight + product_weight;
+                END LOOP;
+    
+                -- вычисляем стоимость доставки
+                :new.delivery_price := delivery_const + delivery_factor * (FLOOR(sum_weight / factor_kg));
+            ELSE
+                -- иначе доставка равна нулю
+                :new.delivery_price := 0;
+            END IF;
+        -- если заказ переходит из статуса "Создан"
+        ELSIF :old.status = 'Создан' THEN
+                                DBMS_OUTPUT.PUT_LINE('2');
+    
+            :new.created_date := CURRENT_DATE; -- устанавливаем дату создания
+    
+            -- вычисляем неделю до неделю после дня рождения
+            SELECT birthday INTO birthday FROM skvortsov_client
+            WHERE login = :old.client_uid;
+    
+            birthday_from := birthday - 7;
+            birthday_to := birthday + 7;
+    
+            -- если у клиента день рождение и старая скидка меньше праздничной,
+            -- то устанавливаем праздничную скидку
+            IF (:new.created_date BETWEEN birthday_from AND birthday_to)
+            AND :old.discount < birthday_discount THEN
+                DBMS_OUTPUT.PUT_LINE('3');
+    
+                :new.discount := birthday_discount;
+            END IF;
+        -- если заказ отменяют, то проверяем статус заказа
+        ELSIF :new.status = 'Отменён' THEN
+            IF :old.status IN ('Подготовка', 'Получен') THEN
+                DBMS_OUTPUT.PUT_LINE('Заказа в статусе'||:old.status);
+                RAISE Skvortsov_Store_Package.E_DONT_CANCEL_ORDER;
+            END IF;
         END IF;
     END IF;
 END;
 /
 
+-- Триггер проверяет условия при установке скидки
+create or replace TRIGGER Skvortsov_Tr_Give_Disc
+BEFORE UPDATE OF discount ON Skvortsov_Order
+    FOR EACH ROW
+DECLARE
+BEGIN
+    IF UPDATING('discount') THEN
+        IF :old.status != 'Создан' THEN
+            DBMS_OUTPUT.PUT_LINE('Невозможно предоставить скидку для заказа со статусом "'||:old.status||'".');
+            RAISE Skvortsov_Store_Package.E_INVALID_STATUS_FOR_DISCOUNT;
+        END IF;
+    END IF;
+END;
+/
