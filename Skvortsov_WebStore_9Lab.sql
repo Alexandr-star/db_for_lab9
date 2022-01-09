@@ -602,6 +602,7 @@ create or replace PACKAGE Skvortsov_Store_Package AS
     Процедура выводит список клиентов
     */
     PROCEDURE Get_Client_List;
+    
 END;
 /
 create or replace PACKAGE BODY Skvortsov_Store_Package AS
@@ -693,15 +694,10 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
     IS
         order_price NUMBER := 0;
         order_discount NUMBER;
-        order_delivery NUMBER;
-        CURSOR products (ord NUMBER) IS
-            SELECT product_price FROM Skvortsov_Ordered_Product
-            WHERE order_uid = ord;
+        order_delivery NUMBER;            
     BEGIN
-        FOR product IN products(c_order_uid)
-        LOOP
-            order_price := order_price + product.product_price;
-        END LOOP;
+        SELECT SUM(product_price) INTO order_price FROM Skvortsov_Ordered_Product
+            WHERE order_uid = c_order_uid;
 
         SELECT discount INTO order_discount FROM Skvortsov_Order
         WHERE order_uid = c_order_uid;
@@ -709,13 +705,7 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         SELECT delivery_price INTO order_delivery FROM Skvortsov_Order
         WHERE order_uid = c_order_uid;
 
-        IF order_discount IS NOT NULL THEN
-            order_price := order_price * (1 - order_discount / 100);
-        END IF;
-
-        IF order_delivery IS NOT NULL THEN
-            order_price := order_price + order_discount;
-        END IF;
+        order_price := order_price * (1 - NVL(order_discount, 0) / 100) + order_delivery;
 
         RETURN order_price;
     END Get_Order_Price;
@@ -1182,16 +1172,42 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
     PROCEDURE Get_Client_List
     IS
         count_orders_complite NUMBER;
+        count_order_complite NUMBER;
         CURSOR clients IS 
-            SELECT * FROM Skvortsov_Client;
+            SELECT Skvortsov_Client.name,
+                Skvortsov_Client.phone, 
+                Skvortsov_Client.address,
+                
+                (SELECT COUNT(status) from skvortsov_order
+                WHERE client_uid = Skvortsov_Client.login AND status = 'Получен') as count_order_finish,
+                
+                (SELECT NVL(SUM(sump), 0) FROM
+                (SELECT client_uid, status, (SELECT SUM(product_price)  FROM skvortsov_ordered_product WHERE order_uid = skvortsov_order.order_uid) 
+                * (1 - NVL(skvortsov_order.discount, 0) / 100) + skvortsov_order.delivery_price as sump FROM skvortsov_order )
+                WHERE client_uid = Skvortsov_Client.login AND status = 'Получен')
+                as sum_order,
+                
+                (SELECT NVL(AVG(sump), 0) FROM
+                (SELECT client_uid, status, (SELECT SUM(product_price)  FROM skvortsov_ordered_product WHERE order_uid = skvortsov_order.order_uid) 
+                * (1 - NVL(skvortsov_order.discount, 0) / 100) + skvortsov_order.delivery_price as sump FROM skvortsov_order )
+                WHERE client_uid = Skvortsov_Client.login AND status = 'Получен')
+                as avg_order,
+                
+                (SELECT NVL((SELECT COUNT(*) FROM skvortsov_order WHERE status = 'Отменен' AND client_uid = Skvortsov_Client.login) / COUNT(*) *100, 0) FROM skvortsov_order WHERE client_uid = Skvortsov_Client.login GROUP BY skvortsov_order.client_uid)
+                as proc_cencels
+                
+                FROM Skvortsov_Client
+                ORDER BY count_order_finish, sum_order, avg_order, proc_cencels;
     BEGIN
         FOR cli IN clients
         LOOP
             DBMS_OUTPUT.PUT_LINE(' Клиент: '||cli.name);
             DBMS_OUTPUT.PUT_LINE('     Тел.: '||cli.phone);
             DBMS_OUTPUT.PUT_LINE('     Адресс: '||cli.address);
-
-            
+            DBMS_OUTPUT.PUT_LINE('     Количество полученных заказов: '||cli.count_order_finish);
+            DBMS_OUTPUT.PUT_LINE('     Суммарная стоимость полученных заказов: '||cli.sum_order);
+            DBMS_OUTPUT.PUT_LINE('     Средняя стоимость полученных заказов: '||cli.avg_order);
+            DBMS_OUTPUT.PUT_LINE('     Отмененные заказы: '||NVL(cli.proc_cencels,0)||'%');
             DBMS_OUTPUT.PUT_LINE('______________________________________________________________________________');
         END LOOP;
     END Get_Client_List;
