@@ -49,8 +49,8 @@ CREATE TABLE Skvortsov_Order (
     complited_date DATE,
     client_uid VARCHAR2(20),
     payment VARCHAR2(25),
-    delivery_price NUMBER(6,2),
-    discount NUMBER(3),
+    delivery_price NUMBER(6,2) DEFAULT 0,
+    discount NUMBER(3) DEFAULT 0,
     status VARCHAR2(100) DEFAULT 'Подготовка'
 );
 
@@ -468,11 +468,11 @@ ALTER TABLE Skvortsov_Product_Type MODIFY (name NOT NULL ENABLE);
 --------------------------------------------------------
 --  Constraints for Table Skvortsov_Product
 -------------------------------------------------------- 
-ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_weight CHECK(weight <= 100000.000 AND weight > 0);
-ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_height CHECK(height <= 1000.0 AND height > 0);
-ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_width CHECK(width <= 1000.0 AND width > 0);
-ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_length CHECK(length <= 1000.0 AND length > 0);
-ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_price CHECK(price > 0 AND price < 1000000.00);
+ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_weight CHECK(weight <= 100000.000 AND weight > 0.00);
+ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_height CHECK(height <= 1000.00 AND height > 0.00);
+ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_width CHECK(width <= 1000.00 AND width > 0);
+ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_length CHECK(length <= 1000.00 AND length > 0.00);
+ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_price CHECK(price > 0.00 AND price < 1000000.00);
 ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_stock CHECK(stock <= 10000 AND stock >= 0);
 
 ALTER TABLE Skvortsov_Product ADD CONSTRAINT PK_Product PRIMARY KEY (product_uid) ENABLE;
@@ -504,7 +504,6 @@ ALTER TABLE Skvortsov_Ordered_Product MODIFY (product_uid NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Ordered_Product MODIFY (order_uid NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Ordered_Product MODIFY (quantity NOT NULL ENABLE);
 
-
 set serveroutput on
 
 create or replace PACKAGE Skvortsov_Store_Package AS
@@ -516,7 +515,7 @@ create or replace PACKAGE Skvortsov_Store_Package AS
     E_PRODUCT_NOT_EXIST EXCEPTION; -- Исключение об отсутствии продукта в базе
     E_INVALID_QUANTITY_OF_PRODUCTS EXCEPTION; -- Исключение об неверном количестве продуктов в заказе
     E_INVALID_DISCOUNT_FOR_ORDER EXCEPTION; -- Исключение о неверном значении скидки
-    E_INVALID_STATUS_FOR_DISCOUNT EXCEPTION; -- Исключение, о неверном статусе заказа для предоставления скидки
+    E_INVALID_STATUS_FOR_DISCOUNT EXCEPTION; -- Исключение о неверном статусе заказа для предоставления скидки
     E_ORDER_NOT_EXIST EXCEPTION; -- Исключение об отсутствии заказа в баезе
     E_WRONG_ORDER_STATUS EXCEPTION; -- Исключение о неверном статусе заказа
     E_NO_PREPARE_ORDERS EXCEPTION; -- Исключение об отсутсвии заказов со статусом Подготовка
@@ -525,26 +524,29 @@ create or replace PACKAGE Skvortsov_Store_Package AS
     E_DONT_CANCEL_ORDER EXCEPTION; -- Исключение о том, что заказ не может быть отменен
     E_WRONG_PHONE EXCEPTION; -- Исключение о неверном номере телефона
     
-    E_WRONG_SEX EXCEPTION; -- Исключение об неверном поле клиента
-    PRAGMA EXCEPTION_INIT (E_WRONG_SEX, -2290);
+    E_WRONG_VALUE_FROM_LIST EXCEPTION; -- Исключение об неверном поле клиента
+    PRAGMA EXCEPTION_INIT(E_WRONG_VALUE_FROM_LIST, -02290);
+    
+    E_NULL_INPUT_FIELD EXCEPTION; -- Исключение о пустом значении вводимого поля пользователем
+    PRAGMA EXCEPTION_INIT(E_NULL_INPUT_FIELD, -01400);
 
     /*
     Процедура добавления клиента
     вход: логин, имя, пол, день рождения, адресс, номер телефона
     */
-    PROCEDURE Add_Client (login VARCHAR2,name VARCHAR2,sex VARCHAR2,birthday VARCHAR2,address VARCHAR2,phone VARCHAR2);
+    PROCEDURE Add_Client(login VARCHAR2,name VARCHAR2,sex VARCHAR2,birthday VARCHAR2,address VARCHAR2,phone VARCHAR2);
     
     /*
     Процедура добавления товара в базу
     вход: наименование, вес, высота, ширина, длинна, цена, категория, количество на складе
     */
-    PROCEDURE Add_Product (name VARCHAR2,weight NUMBER,height NUMBER,width NUMBER,length NUMBER,price NUMBER,product_type VARCHAR2,stock NUMBER);
+    PROCEDURE Add_Product(c_name VARCHAR2,c_weight NUMBER,c_height NUMBER,c_width NUMBER,c_length NUMBER,c_price NUMBER,c_product_type VARCHAR2,c_stock NUMBER);
 
     /*
     Процедура создания заказа
     вход: логин клиента, тип оплаты
     */
-    PROCEDURE Create_Order (client_login VARCHAR2, payment_type VARCHAR2);
+    PROCEDURE Create_Order(client_login VARCHAR2, payment_type VARCHAR2);
 
     /*
     Процедура добавления продукта в заказ
@@ -585,7 +587,7 @@ create or replace PACKAGE Skvortsov_Store_Package AS
     Процедура добавления товара на склад
     вход: номер товара, количество
     */
-    PROCEDURE Delivery_Product_To_Stock (с_product_uid NUMBER, quantity NUMBER);
+    PROCEDURE Delivery_Product_To_Stock(с_product_uid NUMBER, c_quantity NUMBER);
 
     /*
     Процедура добавления скидки в заказ
@@ -601,8 +603,7 @@ create or replace PACKAGE Skvortsov_Store_Package AS
     /*
     Процедура выводит список клиентов
     */
-    PROCEDURE Get_Client_List;
-    
+    PROCEDURE Get_Client_List;    
 END;
 /
 create or replace PACKAGE BODY Skvortsov_Store_Package AS
@@ -619,21 +620,7 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
           WHERE login = client_login;
        RETURN client_count > 0;
     END Is_Client_Exist;
-
-    /*
-    Функция проверки существования категории продукта
-    вход: тип продукта
-    выход: да/нет
-    */
-    FUNCTION Is_Product_Type_Exist (c_product_type VARCHAR2) RETURN BOOLEAN 
-    IS
-        ptype_count INTEGER;
-    BEGIN
-       SELECT COUNT(*) INTO ptype_count FROM Skvortsov_Product_Type
-          WHERE product_type = c_product_type;
-       RETURN ptype_count > 0;
-    END Is_Product_Type_Exist;
-
+    
     /*
     Функция проверки существования продукта
     вход: номер продукта
@@ -690,25 +677,41 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         RETURN products_count > 0;
     END Is_Product_In_Order_Exist;
 
+    /*
+    Функция возвращает стоимость заказа
+    */
     FUNCTION Get_Order_Price(c_order_uid NUMBER) RETURN NUMBER
     IS
         order_price NUMBER := 0;
         order_discount NUMBER;
         order_delivery NUMBER;            
     BEGIN
+        -- считаем общую суму продуктов
         SELECT SUM(product_price) INTO order_price FROM Skvortsov_Ordered_Product
             WHERE order_uid = c_order_uid;
 
+        -- получаем скидку и доставку
         SELECT discount INTO order_discount FROM Skvortsov_Order
         WHERE order_uid = c_order_uid;
 
         SELECT delivery_price INTO order_delivery FROM Skvortsov_Order
         WHERE order_uid = c_order_uid;
 
+        -- вычисляем общую сумму заказ
         order_price := order_price * (1 - NVL(order_discount, 0) / 100) + order_delivery;
 
         RETURN order_price;
     END Get_Order_Price;
+
+    FUNCTION Get_Product_Quantity_In_Order(c_order_uid NUMBER, c_product_uid NUMBER) RETURN NUMBER
+    IS
+        current_quantity NUMBER;
+    BEGIN
+        SELECT quantity INTO current_quantity FROM Skvortsov_Ordered_Product
+        WHERE order_uid = c_order_uid AND product_uid = c_product_uid;
+        
+        RETURN current_quantity;
+    END Get_Product_Quantity_In_Order;
 
     /*
     Процедура добавления клиента
@@ -720,46 +723,48 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         INSERT INTO Skvortsov_Client (login, name, sex, birthday, address, phone)
         VALUES (login, name, sex, TO_DATE(birthday,'DD.MM.RR'), address, phone);
 
-        COMMIT;
-
         DBMS_OUTPUT.PUT_LINE('Клиент "'||name||'" добавлен в таблицу Skvortsov_Client');
+
+        COMMIT;
 
         EXCEPTION
             WHEN DUP_VAL_ON_INDEX THEN
-                DBMS_OUTPUT.PUT_LINE('Вы пытались добавить клиента,значения которого нарушит ограничение уникальности поля login.');
+                DBMS_OUTPUT.PUT_LINE('Вы пытались добавить клиента, значения которого нарушит ограничение уникальности поля login. Клиент "'||login||'" уже есть базе.');
             WHEN E_WRONG_AGE THEN
                 DBMS_OUTPUT.PUT_LINE('Недопустимый возраст. Вы слишком молоды, чтобы пользоваться услугами нашего магазина.');
-            WHEN E_CLIENT_IS_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Клиент "'||login||'" уже есть базе.');
-            WHEN E_WRONG_SEX THEN
-                DBMS_OUTPUT.PUT_LINE('Неверное значение поля "Пол" '||sex||'" введите, пожалуйста "М" или "Ж".');
+            WHEN E_WRONG_VALUE_FROM_LIST THEN
+                DBMS_OUTPUT.PUT_LINE('Неверное значение поля "Пол" '||sex||'" введите, пожалуйста "М" или "Ж" русского алфавита.');                
             WHEN E_WRONG_PHONE THEN
-                DBMS_OUTPUT.PUT_LINE('Неверное значение поля "Телефон" '||phone||'.');
+                DBMS_OUTPUT.PUT_LINE('Неверное значение поля "Телефон" '||phone||'. Формат телефона должен быть +7(***)***-**-**.');
+            WHEN E_NULL_INPUT_FIELD THEN
+                DBMS_OUTPUT.PUT_LINE('Значения полей должны существовать.');
             WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('Произошла ошибка при добавлении клиента.');
+                DBMS_OUTPUT.PUT_LINE('Длинна одного или нескольких вводимых значений превышает допустимый диапазон.');
     END Add_Client;
 
     /*
     Процедура добавления продукта
     вход: наименование, вес, высота, ширина, длинна, цена, тип, количество на складе
     */
-    PROCEDURE Add_Product(name VARCHAR2,weight NUMBER,height NUMBER,width NUMBER,length NUMBER,price NUMBER,product_type VARCHAR2,stock NUMBER)
+    PROCEDURE Add_Product(c_name VARCHAR2,c_weight NUMBER,c_height NUMBER,c_width NUMBER,c_length NUMBER,c_price NUMBER,c_product_type VARCHAR2,c_stock NUMBER)
     IS
     BEGIN
         INSERT INTO Skvortsov_Product (name,weight,height,width,length,price,product_type,stock)
-        VALUES (name,weight,height,width,length,price,product_type,stock);
+        VALUES (c_name,c_weight,c_height,c_width,c_length,c_price,c_product_type,c_stock);
+
+        DBMS_OUTPUT.PUT_LINE('Продукт "'||c_name||'" типа "'||c_product_type||'"добавлен в таблицу Skvortsov_Product');
 
         COMMIT;
-
-        DBMS_OUTPUT.PUT_LINE('Продукт "'||name||'" типа "'||product_type||'"добавлен в таблицу Skvortsov_Product');
 
         EXCEPTION
             WHEN DUP_VAL_ON_INDEX THEN
                 DBMS_OUTPUT.PUT_LINE('Вы пытались добавить продукт, значения которого нарушит ограничение уникальности поля product_uid.');
             WHEN E_WRONG_PRODUCT_TYPE_CODE THEN
-                DBMS_OUTPUT.PUT_LINE('Тип продукта "'||product_type||'" отсутсвует в таблице Skvortsov_Product_Type.');
+                DBMS_OUTPUT.PUT_LINE('Тип продукта "'||c_product_type||'" отсутсвует в таблице Skvortsov_Product_Type.');
+            WHEN E_NULL_INPUT_FIELD THEN
+                DBMS_OUTPUT.PUT_LINE('Значения полей должны существовать.');
             WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('Произошла ошибка при добовлении продукта.');
+                DBMS_OUTPUT.PUT_LINE('Длинна одного или нескольких вводимых значений превышает допустимый диапазон.');
     END Add_Product;
 
     /*
@@ -772,21 +777,23 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         IF NOT Is_Client_Exist(client_login) THEN
             RAISE E_NO_CLIENT;
         END IF;
-
+    
         INSERT INTO Skvortsov_Order (client_uid, payment)
         VALUES (client_login, payment_type);
-
+        
+        DBMS_OUTPUT.PUT_LINE('Заказ №"'||SKVORTSOV_ORDER_UID_SEQ.currval||'" клиента "'||client_login||'" добавлен в таблицу Skvortsov_Order');
+        
         COMMIT;
-
-        DBMS_OUTPUT.PUT_LINE('Заказ N"'||SKVORTSOV_ORDER_UID_SEQ.currval||'" клиента "'||client_login||'" добавлен в таблицу Skvortsov_Order');
 
         EXCEPTION
             WHEN DUP_VAL_ON_INDEX THEN
                 DBMS_OUTPUT.PUT_LINE('Вы пытались добавить продукт, значения которого нарушит ограничение уникальности поля order_uid.');
+            WHEN E_WRONG_VALUE_FROM_LIST THEN
+                DBMS_OUTPUT.PUT_LINE('Неверный тип оплаты: "'||payment_type||'" .');
             WHEN E_NO_CLIENT THEN
                 DBMS_OUTPUT.PUT_LINE('Клиента "'||client_login||'" нет в базе.');
-            WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('Произошла ошибка при добовлении продукта.');
+            WHEN E_NULL_INPUT_FIELD THEN
+                DBMS_OUTPUT.PUT_LINE('Значения полей должны существовать.');
     END Create_Order;
 
     /*
@@ -795,6 +802,9 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
     */
     PROCEDURE Add_Product_In_Order(c_order_uid NUMBER, c_product_uid NUMBER, c_quantity NUMBER)
     IS
+        -- Новое значение количества продукта в заказе
+        current_quantity NUMBER;
+        new_quantity NUMBER; 
     BEGIN
         IF NOT Is_Order_Exist(c_order_uid) THEN
             RAISE E_ORDER_NOT_EXIST;
@@ -803,8 +813,14 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         ELSE
             -- Если данный продукт уже есть в заказе, то мы добавляем указанное количество продукта
             IF Is_Ordered_Product_Item_Exist(c_order_uid, c_product_uid) THEN
+                -- Получем уже существующее количество продукта
+                current_quantity := Get_Product_Quantity_In_Order(c_order_uid, c_product_uid);
+        
+                -- Вычисляем новое значение количества
+                new_quantity := current_quantity + c_quantity;
+                
                 UPDATE Skvortsov_Ordered_Product 
-                SET quantity = c_quantity
+                SET quantity = new_quantity
                 WHERE order_uid = c_order_uid AND product_uid = c_product_uid;
                 
                 DBMS_OUTPUT.PUT_LINE('В заказе №'||c_order_uid||' увеличен продукт №'||c_product_uid||' на '||c_quantity||' шт.');
@@ -823,13 +839,11 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
             WHEN E_WRONG_ORDER_STATUS THEN
                 DBMS_OUTPUT.PUT_LINE('Неверный статус заказа.');
             WHEN E_PRODUCT_NOT_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Продукта с N'||c_product_uid||' нет в базе.');
+                DBMS_OUTPUT.PUT_LINE('Продукта с №'||c_product_uid||' нет в базе.');
             WHEN E_ORDER_NOT_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Заказа с N'||c_order_uid||' нет в базе.');
+                DBMS_OUTPUT.PUT_LINE('Заказа с №'||c_order_uid||' нет в базе.');
             WHEN E_INVALID_QUANTITY_OF_PRODUCTS THEN
                 DBMS_OUTPUT.PUT_LINE('Недопустимое количество товара.');
-            WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('Произошла ошибка при добовлении продукта.');
     END Add_Product_In_Order;
 
     /*
@@ -841,6 +855,7 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         -- локальные переменные
         status_order VARCHAR2(100); -- статус заказа
         payment_order VARCHAR2(25); -- типо оплаты заказа
+        current_stock NUMBER; -- текущее количество продукта на складе
         stock_product NUMBER; -- количество продукта на складе
         p_price NUMBER; -- цена продукта
         -- курсор, который возвращает продукты заказа
@@ -886,6 +901,8 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
             UPDATE skvortsov_order
             SET status = 'Создан'
             WHERE order_uid = c_order_uid;
+            
+            DBMS_OUTPUT.PUT_LINE('Заказ перешел в статус "Создан".');
         -- если заказ в статусе "Создан", то в зависимости от типа оплаты
         ELSIF status_order = 'Создан' THEN
             IF payment_order = 'Предоплата' THEN
@@ -893,18 +910,27 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
                 UPDATE skvortsov_order
                 SET status = 'Оплачен'
                 WHERE order_uid = c_order_uid;
+                
+                DBMS_OUTPUT.PUT_LINE('Заказ перешел в статус "Оплачен".');
             ELSE
             -- или  в "Комплектация"
                 UPDATE skvortsov_order
                 SET status = 'Комплектация'
                 WHERE order_uid = c_order_uid;
+                
+                DBMS_OUTPUT.PUT_LINE('Заказ перешел в статус "Оплачен".');
             END IF;
             
             -- уменьшаем количество товаров на складе
             FOR product IN products(c_order_uid)
             LOOP
+                SELECT stock INTO current_stock FROM Skvortsov_Product
+                WHERE product_uid = product.product_uid;
+            
+                stock_product := current_stock - product.quantity;
+                
                 UPDATE Skvortsov_Product
-                SET stock = -product.quantity
+                SET stock = stock_product
                 WHERE product_uid = product.product_uid;
             END LOOP;
         -- если заказ в статусе "Оплачен", то в зависимости от типа оплаты
@@ -914,17 +940,23 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
                 UPDATE skvortsov_order
                 SET status = 'Получен', complited_date = CURRENT_DATE
                 WHERE order_uid = c_order_uid;
+                
+                DBMS_OUTPUT.PUT_LINE('Заказ перешел в статус "Получен".');
             ELSE
                 -- или в "Комплектация"
                 UPDATE skvortsov_order
                 SET status = 'Комплектация'
                 WHERE order_uid = c_order_uid;
+                
+                DBMS_OUTPUT.PUT_LINE('Заказ перешел в статус "Комплектация".');
             END IF;
         -- после комплектации заказ отправляют
         ELSIF status_order = 'Комплектация' THEN
             UPDATE skvortsov_order
             SET status = 'Отправлен'
             WHERE order_uid = c_order_uid;
+            
+            DBMS_OUTPUT.PUT_LINE('Заказ перешел в статус "Отправлен".');
         -- если заказ в статусе "Оплачен", то в зависимости от типа оплаты
         ELSIF status_order = 'Отправлен' THEN
             IF payment_order = 'При получении' THEN
@@ -932,11 +964,15 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
                 UPDATE skvortsov_order
                 SET status = 'Оплачен'
                 WHERE order_uid = c_order_uid;
+                
+                DBMS_OUTPUT.PUT_LINE('Заказ перешел в статус "Оплачен".');
             ELSE
                 -- или уже выдают если была совершена предоплата
                 UPDATE skvortsov_order
                 SET status = 'Получен', complited_date = CURRENT_DATE
                 WHERE order_uid = c_order_uid;
+                
+                DBMS_OUTPUT.PUT_LINE('Заказ перешел в статус "Получен".');
             END IF;
         END IF;
         
@@ -946,7 +982,7 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
             WHEN E_WRONG_ORDER_STATUS THEN
                 DBMS_OUTPUT.PUT_LINE('E_WRONG_ORDER_STATUS.');
             WHEN E_INVALID_QUANTITY_OF_PRODUCTS THEN
-                DBMS_OUTPUT.PUT_LINE('E_INVALID_QUANTITY_OF_PRODUCTS.');
+                DBMS_OUTPUT.PUT_LINE('Недопустимое количество товара.');
             WHEN E_INVALID_STATUS_FOR_DISCOUNT THEN
                 DBMS_OUTPUT.PUT_LINE('E_INVALID_STATUS_FOR_DISCOUNT');
             WHEN E_ORDER_IS_RECEIVED THEN
@@ -956,7 +992,7 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
             WHEN E_PRODUCT_NOT_EXIST THEN
                 DBMS_OUTPUT.PUT_LINE('В заказе №'||c_order_uid||' нет добавленых продуктов. Переход к следущему статусу не осуществим.');
             WHEN E_ORDER_NOT_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Заказа с N'||c_order_uid||' нет в базе.');
+                DBMS_OUTPUT.PUT_LINE('Заказа с №'||c_order_uid||' нет в базе.');
     END Order_Move;
     
     /*Процедура отмены заказа
@@ -973,13 +1009,15 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         SET status = 'Отменён', complited_date = CURRENT_DATE
         WHERE order_uid = c_order_uid;
         
+        DBMS_OUTPUT.PUT_LINE('Заказа с №'||c_order_uid||' отменен.');
+        
         COMMIT;
         
         EXCEPTION
             WHEN E_ORDER_NOT_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Заказа с N'||c_order_uid||' нет в базе.');
+                DBMS_OUTPUT.PUT_LINE('Заказа с №'||c_order_uid||' нет в базе.');
             WHEN E_DONT_CANCEL_ORDER THEN
-                DBMS_OUTPUT.PUT_LINE('Заказа с N'||c_order_uid||' невозможно отменить.');
+                DBMS_OUTPUT.PUT_LINE('Заказа с №'||c_order_uid||' невозможно отменить.');
     END Cancel_Order;
 
     /*
@@ -989,7 +1027,7 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
     PROCEDURE Delete_Product_From_Order(c_order_uid NUMBER, c_product_uid NUMBER)
     IS
     BEGIN
-        -- проверка, существет ли заказ и продукт
+       -- проверка, существет ли заказ и продукт
         IF NOT Is_Product_Exist(c_product_uid) THEN
             RAISE E_PRODUCT_NOT_EXIST;
         ELSIF NOT Is_Order_Exist(c_order_uid) THEN
@@ -997,6 +1035,10 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         ELSE
             DELETE FROM skvortsov_ordered_product
             WHERE order_uid = c_order_uid AND product_uid = c_product_uid;
+        
+            DBMS_OUTPUT.PUT_LINE('Продукт №'||c_product_uid||' дален из заказа №'||c_order_uid);
+            
+            COMMIT;
         END IF;
 
         EXCEPTION
@@ -1005,9 +1047,7 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
             WHEN E_PRODUCT_NOT_EXIST THEN
                 DBMS_OUTPUT.PUT_LINE('Продукта с №'||c_product_uid||' нет в базе.');
             WHEN E_ORDER_NOT_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Заказа с N'||c_order_uid||' нет в базе.');
-            WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('Произошла ошибка при добовлении продукта.');
+                DBMS_OUTPUT.PUT_LINE('Заказа с №'||c_order_uid||' нет в базе.');
     END Delete_Product_From_Order;
 
     /*
@@ -1016,8 +1056,8 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
     */
     PROCEDURE Reduce_Product_In_Order(с_order_uid NUMBER, с_product_uid NUMBER, с_quantity NUMBER)
     IS
-        -- делаем значение отрицательным, тогда триггер вычтет с_quantity из общего количества товара в заказе
-        negative_quantity NUMBER := -с_quantity;
+        current_quantity NUMBER;
+        new_quantity NUMBER;
     BEGIN
         -- проверка, существет ли заказ и продукт
         IF NOT Is_Product_Exist(с_product_uid) THEN
@@ -1025,17 +1065,22 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         ELSIF NOT Is_Order_Exist(с_order_uid) THEN
             RAISE E_ORDER_NOT_EXIST;
         ELSE
+            -- Получем уже существующее количество продукта
+            current_quantity := Get_Product_Quantity_In_Order(с_order_uid, с_product_uid);
+            -- Вычисляем новое значение количества
+            new_quantity := current_quantity - с_quantity;
+        
             -- обновляем количество товаров
             UPDATE skvortsov_ordered_product
-            SET quantity = negative_quantity
-            WHERE order_uid = order_uid AND product_uid = с_product_uid;
+            SET quantity = new_quantity
+            WHERE order_uid = с_order_uid AND product_uid = с_product_uid;
 
             -- если после обновления количество стало 0, то удаляем товар из заказа
             DELETE skvortsov_ordered_product
             WHERE order_uid = order_uid AND product_uid = с_product_uid AND quantity = 0;
+
+            COMMIT;
         END IF;
-        
-        COMMIT;
 
         EXCEPTION
             WHEN E_INVALID_QUANTITY_OF_PRODUCTS THEN
@@ -1044,37 +1089,47 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
                 DBMS_OUTPUT.PUT_LINE('Продукта с №'||с_product_uid||' нет в базе.');
             WHEN E_ORDER_NOT_EXIST THEN
                 DBMS_OUTPUT.PUT_LINE('Заказа с №'||с_order_uid||' нет в базе.');
-            WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('Произошла ошибка при добовлении продукта.');
+            WHEN E_WRONG_ORDER_STATUS THEN
+                DBMS_OUTPUT.PUT_LINE('Неверный статус заказа.');
     END Reduce_Product_In_Order;
 
     /*
     Процедура добавления товара на склад
     вход: номер товара, количество
     */
-    PROCEDURE Delivery_Product_To_Stock (с_product_uid NUMBER, quantity NUMBER)
+    PROCEDURE Delivery_Product_To_Stock (с_product_uid NUMBER, c_quantity NUMBER)
     IS
+        current_quantity_in_stock NUMBER;
+        new_quantity_in_stock NUMBER;
     BEGIN
         IF NOT Is_Product_Exist(с_product_uid) THEN
             RAISE E_PRODUCT_NOT_EXIST;
-        ELSIF quantity <= 0 THEN
+        ELSIF c_quantity <= 0 THEN
             RAISE E_INVALID_QUANTITY_OF_PRODUCTS;
         ELSE
+            -- Получем уже существующее количество продукта
+            SELECT stock INTO current_quantity_in_stock FROM Skvortsov_Product
+            WHERE product_uid = с_product_uid;
+            -- Вычисляем новое значение количества
+            new_quantity_in_stock := current_quantity_in_stock  + c_quantity;
+
             UPDATE Skvortsov_Product
-            SET stock = quantity
+            SET stock = new_quantity_in_stock
             WHERE product_uid = с_product_uid;
 
+
+            DBMS_OUTPUT.PUT_LINE('Количество продукции с №'||с_product_uid||' увеличено на '||c_quantity||' пунктов.');
+            
             COMMIT;
-            DBMS_OUTPUT.PUT_LINE('Количество продукции с №'||с_product_uid||' увеличено на '||quantity||' пунктов.');
         END IF;
 
         EXCEPTION
             WHEN E_PRODUCT_NOT_EXIST THEN
                 DBMS_OUTPUT.PUT_LINE('Продукта с №'||с_product_uid||' нет в базе.');
             WHEN E_INVALID_QUANTITY_OF_PRODUCTS THEN
-                 DBMS_OUTPUT.PUT_LINE('Недопустимое значение количесва продукции: '||quantity||'.');
+                 DBMS_OUTPUT.PUT_LINE('Недопустимое значение количесва продукции: '||c_quantity||'.');
             WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('Произошла ошибка при добовлении продукта.');
+                DBMS_OUTPUT.PUT_LINE('Недопустимое значение количесва продукции: '||c_quantity||'.');
     END Delivery_Product_To_Stock;
 
     /*
@@ -1082,24 +1137,21 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
     */
      PROCEDURE Delete_Empty_Orders
      IS
+        empty_order_count NUMBER;
      BEGIN
         -- удаляем все заказы со статусом "Подготовка" и без заказов
-         DELETE FROM Skvortsov_Order
-            WHERE status = 'Подготовка' 
-            AND (SELECT COUNT(*) FROM Skvortsov_Ordered_Product
+        DELETE FROM Skvortsov_Order
+        WHERE status = 'Подготовка' 
+        AND (SELECT COUNT(*) FROM Skvortsov_Ordered_Product
                     WHERE order_uid = Skvortsov_Order.order_uid) = 0;
 
-         COMMIT;
+        DBMS_OUTPUT.PUT_LINE('Пустые заказы удалены.');
 
-         DBMS_OUTPUT.PUT_LINE('Empty orders is deleted.');
+        COMMIT;
 
-         EXCEPTION
-             WHEN E_NO_EMPTY_ORDERS THEN
-                 DBMS_OUTPUT.PUT_LINE('Нет пустых заказов.');
-             WHEN E_NO_PREPARE_ORDERS THEN
-                 DBMS_OUTPUT.PUT_LINE('Нет заказов со статусом "Подготовка".');
-             WHEN OTHERS THEN
-                 DBMS_OUTPUT.PUT_LINE('Произошла ошибка при удалении пустых заказов.');
+        EXCEPTION
+            WHEN E_NO_EMPTY_ORDERS THEN
+                DBMS_OUTPUT.PUT_LINE('Нет пустых заказов.');
      END Delete_Empty_Orders;
 
     /*
@@ -1112,43 +1164,56 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         IF NOT Is_Order_Exist(с_order_uid) THEN
             RAISE E_ORDER_NOT_EXIST;
         ELSE
-        DBMS_OUTPUT.PUT_LINE(' заказ "'||с_order_uid||'".');
-        DBMS_OUTPUT.PUT_LINE(' скидка "'||c_discount||'".');
         -- выделяем скидку для заказа, если заказ создан
             UPDATE Skvortsov_Order
             SET discount = c_discount
             WHERE order_uid = с_order_uid;
-
+            
+            DBMS_OUTPUT.PUT_LINE('Заказу №'||с_order_uid||' предоставлена скидка в размере '||c_discount||'%.');
+            
             COMMIT;
         
         END IF;
+
         EXCEPTION
             WHEN E_INVALID_DISCOUNT_FOR_ORDER THEN
                 DBMS_OUTPUT.PUT_LINE('Значение скидки "'||c_discount||'" недействительно.');
             WHEN E_ORDER_NOT_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Заказа с N'||с_order_uid||' нет в базе.');
+                DBMS_OUTPUT.PUT_LINE('Заказа с №'||с_order_uid||' нет в базе.');
             WHEN E_INVALID_STATUS_FOR_DISCOUNT THEN
                 DBMS_OUTPUT.PUT_LINE('Операция невозможна.');
             WHEN OTHERS THEN
-                DBMS_OUTPUT.PUT_LINE('Произошла ошибка при добовлении продукта.');
+                DBMS_OUTPUT.PUT_LINE('Неверное значение скидки '||c_discount||'.');
     END Give_Discount;
 
+    /*
+    Процедура выводящая список заказов с указанием клиента и списка заказанных товаров.
+    Список сортируется по статусам и по убыванию даты создания.
+    Для заказа указывается стоимость.
+    */
     PROCEDURE Get_Order_List
     IS
         order_price NUMBER;
         product_name VARCHAR2(100);
+        
+        -- курсор возвращающий заказы, упорядоченные по статусу и дате создания
         CURSOR orders IS 
             SELECT order_uid, client_uid, created_date, complited_date, status FROM Skvortsov_Order
-            ORDER BY created_date DESC, status;
+            ORDER BY status, created_date DESC;
+        
+        -- курсор возвращающий продукты в заказе, упорядоченные по номеру продукта
         CURSOR products (ord NUMBER) IS
             SELECT product_uid, quantity FROM Skvortsov_Ordered_Product
-            WHERE order_uid = ord;
+            WHERE order_uid = ord
+            ORDER BY product_uid DESC;
     BEGIN
         FOR client_order IN orders
         LOOP
+            -- выводим информацию о заказе и указываем клиента
             DBMS_OUTPUT.PUT_LINE('Client: '||client_order.client_uid);
             DBMS_OUTPUT.PUT_LINE('       Order: '||client_order.order_uid||' Status: '||client_order.status||' Create order: '||client_order.created_date||' Complite order: '||client_order.complited_date);
-    
+
+            -- если стоимости заказа нет, то выводим сообщение об этом
             order_price := Get_Order_Price(client_order.order_uid);
             IF order_price = 0 OR order_price IS NULL THEN
                 DBMS_OUTPUT.PUT_LINE('       Price Order: значение отсутсвует');
@@ -1156,6 +1221,7 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
                 DBMS_OUTPUT.PUT_LINE('       Price Order: '||order_price);
             END IF;
         
+            -- выводм список продуктов, принадлежащих заказу
             DBMS_OUTPUT.PUT_LINE('       Products: ');
             FOR order_product IN products(client_order.order_uid)
             LOOP
@@ -1169,36 +1235,64 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         END LOOP;
     END Get_Order_List;
     
+    /*
+    Процедура выводящая список клиентов с указанием количества полученных заказов, суммарной и средней
+    стоимости заказа, а также процента отменённых заказов.
+    Список сортируется по убыванию каждого из параметров в указанном порядке их следования.
+    */
     PROCEDURE Get_Client_List
     IS
-        count_orders_complite NUMBER;
-        count_order_complite NUMBER;
+        -- курсор возвращающих список клиентов
         CURSOR clients IS 
-            SELECT Skvortsov_Client.name,
+            SELECT 
+                -- данные клиента (имя, телефон, адрес)
+                Skvortsov_Client.name,
                 Skvortsov_Client.phone, 
                 Skvortsov_Client.address,
                 
+                /*
+                count_order_finish
+                Количество полученных заказов.
+                */
                 (SELECT COUNT(status) from skvortsov_order
                 WHERE client_uid = Skvortsov_Client.login AND status = 'Получен') as count_order_finish,
                 
+                /* 
+                sum_order
+                Суммарная стоимость заказов.
+                Вычисляем сумму, получая значения из подзапроса.
+                В подзапросе мы используем еще один подзапрос, в котором вычисляется стоимость заказа.
+                */
                 (SELECT NVL(SUM(sump), 0) FROM
                 (SELECT client_uid, status, (SELECT SUM(product_price)  FROM skvortsov_ordered_product WHERE order_uid = skvortsov_order.order_uid) 
                 * (1 - NVL(skvortsov_order.discount, 0) / 100) + skvortsov_order.delivery_price as sump FROM skvortsov_order )
                 WHERE client_uid = Skvortsov_Client.login AND status = 'Получен')
                 as sum_order,
                 
+                /*
+                avg_order
+                Средняя стоимость заказов.
+                Вычисляем среднее значение стоимости, получая значения из подзапроса.
+                В подзапросе мы используем еще один подзапрос, в котором вычисляется стоимость заказа.
+                */
                 (SELECT NVL(AVG(sump), 0) FROM
                 (SELECT client_uid, status, (SELECT SUM(product_price)  FROM skvortsov_ordered_product WHERE order_uid = skvortsov_order.order_uid) 
                 * (1 - NVL(skvortsov_order.discount, 0) / 100) + skvortsov_order.delivery_price as sump FROM skvortsov_order )
                 WHERE client_uid = Skvortsov_Client.login AND status = 'Получен')
                 as avg_order,
                 
-                (SELECT NVL((SELECT COUNT(*) FROM skvortsov_order WHERE status = 'Отменен' AND client_uid = Skvortsov_Client.login) / COUNT(*) *100, 0) FROM skvortsov_order WHERE client_uid = Skvortsov_Client.login GROUP BY skvortsov_order.client_uid)
+                /*
+                proc_cencels
+                Вычисление процента отменненых заказов.
+                В подзапросе получаем все отмененные заказы у клиента и вычисляем процент.
+                */
+                (SELECT NVL((SELECT COUNT(*) FROM skvortsov_order WHERE status = 'Отменён' AND client_uid = Skvortsov_Client.login) / COUNT(*) *100, 0) FROM skvortsov_order WHERE client_uid = Skvortsov_Client.login GROUP BY skvortsov_order.client_uid)
                 as proc_cencels
                 
                 FROM Skvortsov_Client
                 ORDER BY count_order_finish, sum_order, avg_order, proc_cencels;
     BEGIN
+        -- вывод данных
         FOR cli IN clients
         LOOP
             DBMS_OUTPUT.PUT_LINE(' Клиент: '||cli.name);
@@ -1214,33 +1308,102 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
 
 END Skvortsov_Store_Package;
 /
--- Триггер проверяет возраст и номер телефона при добавлении клиента
+
+-- Триггер проверяет и обрабатывает ошибки при создании клиента
 create or replace TRIGGER Skvortsov_Tr_Insert_Client
 BEFORE INSERT ON Skvortsov_Client
     FOR EACH ROW
 DECLARE
-    LittleAge CONSTANT NUMBER := 168; -- количество месяцев равные 14 годам
+    little_age CONSTANT NUMBER := 168; -- количество месяцев равные 14 годам
+    error_exist BOOLEAN := false; -- индикатор наличия ошибки
 BEGIN
+    IF :new.login IS NULL THEN
+        DBMS_OUTPUT.PUT_LINE('Поле login не может быть пустым.');
+        error_exist := true;
+    END IF;
+    
+    IF :new.name IS NULL THEN
+        DBMS_OUTPUT.PUT_LINE('Поле name не может быть пустым.');
+        error_exist := true;
+    END IF;
+    
+    IF :new.birthday IS NULL THEN
+        DBMS_OUTPUT.PUT_LINE('Поле birthday не может быть пустым.');
+        error_exist := true;
     -- проверка, что клиент не молодже 14 лет
-    IF MONTHS_BETWEEN(CURRENT_DATE, :new.birthday) < LittleAge THEN
+    ELSIF MONTHS_BETWEEN(CURRENT_DATE, :new.birthday) < little_age THEN
         RAISE Skvortsov_Store_Package.E_WRONG_AGE;
     END IF;
     
+    IF :new.address IS NULL THEN
+        DBMS_OUTPUT.PUT_LINE('Поле address не может быть пустым.');
+        error_exist := true;
+    END IF;
+    
+    IF :new.phone IS NULL THEN
+        DBMS_OUTPUT.PUT_LINE('Поле phone не может быть пустым.');
+        error_exist := true;
     -- проверка правильности номера телефона
-    IF NOT REGEXP_LIKE(:new.phone, '\+7\(\d{3}\)\d{3}-\d{2}-\d{2}') THEN
+    ELSIF NOT REGEXP_LIKE(:new.phone, '\+7\(\d{3}\)\d{3}-\d{2}-\d{2}') THEN
          RAISE Skvortsov_Store_Package.E_WRONG_PHONE;
+    END IF;
+    
+    IF error_exist THEN
+        RAISE Skvortsov_Store_Package.E_NULL_INPUT_FIELD;
     END IF;
 END;
 /
--- Триггер увеличивает количество товаров на складе
-CREATE OR REPLACE TRIGGER Skvortsov_Tr_Prod_To_Stock
-BEFORE UPDATE OF stock ON Skvortsov_Product
+-- Триггер проверяет и обрабатывает ошибки при создании и обновлении продукта
+create or replace TRIGGER Skvortsov_Tr_Insert_Prod
+BEFORE INSERT OR UPDATE ON Skvortsov_Product
     FOR EACH ROW
 DECLARE
-    PRAGMA AUTONOMOUS_TRANSACTION;
+    error_exist BOOLEAN := false; -- индикатор наличия ошибки
+    ptype_count NUMBER;
 BEGIN
-    IF :old.stock != :new.stock THEN
-        :new.stock := :old.stock + :new.stock;
+    IF INSERTING THEN
+        IF :new.name IS NULL THEN
+            DBMS_OUTPUT.PUT_LINE('Поле name не может быть пустым.');
+            error_exist := true;
+        END IF;
+    
+        IF :new.weight IS NULL THEN
+            DBMS_OUTPUT.PUT_LINE('Поле weight не может быть пустым.');
+            error_exist := true;
+        END IF;
+    
+        IF :new.price IS NULL THEN
+            DBMS_OUTPUT.PUT_LINE('Поле price не может быть пустым.');
+            error_exist := true;
+        END IF;
+    
+        IF :new.product_type IS NULL THEN
+            DBMS_OUTPUT.PUT_LINE('Поле product_type не может быть пустым.');
+            error_exist := true;
+        ELSE
+            SELECT COUNT(*) INTO ptype_count FROM Skvortsov_Product_Type
+              WHERE product_type = :new.product_type;
+            
+            IF ptype_count = 0 THEN
+                RAISE Skvortsov_Store_Package.E_WRONG_PRODUCT_TYPE_CODE;
+            END IF;
+        END IF;
+    
+        IF :new.stock IS NULL THEN
+            DBMS_OUTPUT.PUT_LINE('Поле stock не может быть пустым.');
+            error_exist := true;
+        END IF;
+    
+        IF error_exist THEN
+            RAISE Skvortsov_Store_Package.E_NULL_INPUT_FIELD;
+        END IF;
+    ELSIF UPDATING('stock') THEN
+        IF :new.stock < 0 THEN
+            DBMS_OUTPUT.PUT_LINE('Количество продукта №'||:new.product_uid||' на складе может стать '||:new.stock);
+            RAISE Skvortsov_Store_Package.E_INVALID_QUANTITY_OF_PRODUCTS;
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Количество продукта №'||:new.product_uid||' на складе стало '||:new.stock);
+        END IF;
     END IF;
 END;
 /
@@ -1254,6 +1417,8 @@ DECLARE
     quantity_in_stock NUMBER; -- количество товаров на складе
     product_price NUMBER; -- цена продукта
     order_status NUMBER; -- статус заказа
+    o_count NUMBER; -- счетчик количества заказов
+    p_count NUMBER; -- счетчик количества продуктов
 BEGIN
     -- получаем статус заказа
     SELECT COUNT(*) INTO order_status FROM skvortsov_order
@@ -1272,18 +1437,12 @@ BEGIN
                 RAISE Skvortsov_Store_Package.E_INVALID_QUANTITY_OF_PRODUCTS;
             END IF;
         -- если обновляем таблицу (если товар в заказе уже есть)
-        ELSIF UPDATING THEN
-            IF :old.quantity != :new.quantity THEN
-                -- то увеличиваем количество товаров в заказе. если :new.quantity отрицательное,
-                -- тогда обрабатывает процедуру по уменьшению товара в заказе
-                :new.quantity := :old.quantity + :new.quantity;
-
-                -- проверяем, что количество товара в заказе не превышает количество на складе
-                IF :new.quantity > quantity_in_stock OR :new.quantity < 0 THEN
-                    RAISE Skvortsov_Store_Package.E_INVALID_QUANTITY_OF_PRODUCTS;
-                ELSE
-                    DBMS_OUTPUT.PUT_LINE('Количество продуктов с №'||:new.product_uid||' стало '||:new.quantity);
-                END IF;
+        ELSIF UPDATING('quantity') THEN
+            -- проверяем, что количество товара в заказе не превышает количество на складе
+            IF :new.quantity > quantity_in_stock OR :new.quantity < 0 THEN
+                RAISE Skvortsov_Store_Package.E_INVALID_QUANTITY_OF_PRODUCTS;
+            ELSE
+                DBMS_OUTPUT.PUT_LINE('Количество продуктов с №'||:new.product_uid||' в заказе №'||:new.order_uid||' стало '||:new.quantity);
             END IF;
         END IF;
     ELSE
@@ -1298,6 +1457,7 @@ BEFORE DELETE ON Skvortsov_Ordered_Product
 DECLARE
     order_status NUMBER;
 BEGIN
+    -- проверка статуса заказа
     SELECT COUNT(*) INTO order_status FROM skvortsov_order
     WHERE order_uid = :old.order_uid AND status = 'Подготовка';
 
@@ -1305,44 +1465,38 @@ BEGIN
         RAISE Skvortsov_Store_Package.E_WRONG_ORDER_STATUS;
     END IF;
 END;
-
 /
 -- Триггер проверяет статус заказа и наличие товара, при удалении 
 -- пустых заказов, и вызывает соответсвующие исключения
 create or replace TRIGGER Skvortsov_Tr_Drop_Emp_Order
-BEFORE DELETE ON Skvortsov_Order
+AFTER DELETE ON Skvortsov_Order
     FOR EACH ROW
 DECLARE
     prepere_order NUMBER;
     empty_order NUMBER;
     PRAGMA AUTONOMOUS_TRANSACTION;
 BEGIN
-    SELECT COUNT(*) INTO prepere_order FROM Skvortsov_Order
-        WHERE status = 'Подготовка';
+    SELECT COUNT(*) INTO empty_order FROM Skvortsov_Order
+        WHERE status = 'Подготовка' 
+        AND (SELECT COUNT(*) FROM Skvortsov_Ordered_Product
+             WHERE order_uid = Skvortsov_Order.order_uid) = 0;
 
-    IF prepere_order = 0 THEN
-        RAISE Skvortsov_Store_Package.E_NO_PREPARE_ORDERS;
-    ELSE
-        SELECT COUNT(*) INTO empty_order FROM Skvortsov_Order
-            WHERE status = 'Подготовка' 
-            AND (SELECT COUNT(*) FROM Skvortsov_Ordered_Product
-                 WHERE order_uid = Skvortsov_Order.order_uid) = 0;
-
-        IF empty_order = 0 THEN
-            RAISE Skvortsov_Store_Package.E_NO_EMPTY_ORDERS;
-        END IF;
+    IF empty_order = 0 THEN
+        RAISE Skvortsov_Store_Package.E_NO_EMPTY_ORDERS;
     END IF;
 END;
 /
--- Триггер обрабатывающий движение заказа
-create or replace TRIGGER Skvortsov_Tr_Move_Order
+-- Триггер обрабатывающий обновление статуса заказа
+create or replace TRIGGER Skvortsov_Tr_Status_Order
 BEFORE UPDATE OF status ON Skvortsov_Order
     FOR EACH ROW
 DECLARE
-    birthday_from DATE;     -- вспомогательные переменные, для получения диапазона дня рождения клиента
+    o_count NUMBER; -- счетчик количества заказов
+    birthday_from DATE; -- вспомогательные переменные, для получения диапазона дня рождения клиента
     birthday_to DATE;
-    birthday DATE;
-    birthday_discount NUMBER := 5;     -- скидка на день рождения
+    client_birthday DATE; -- дата рождения клиента
+    dif_year NUMBER; -- разница между текущим годом и годом рождения клиента
+    birthday_discount NUMBER := 5; -- скидка на день рождения
     in_stock NUMBER; -- количество товара на складе
     product_weight NUMBER; -- вес товара
     sum_weight NUMBER := 0; -- суммарный вес товара
@@ -1350,68 +1504,74 @@ DECLARE
     delivery_factor NUMBER := 10; -- множитель 1 кг
     factor_kg NUMBER := 5;
     order_price NUMBER := 0; -- цена заказа
-    delivery_p NUMBER; -- цена доставки
+    discount_p NUMBER; -- скидка
     CURSOR products (ord NUMBER) IS
         SELECT product_uid, quantity, product_price FROM Skvortsov_Ordered_Product
         WHERE order_uid = ord;
-BEGIN
+BEGIN        
     -- выполняем действия, если обновляется поле status
     IF UPDATING('status') THEN
         -- если заказ переходит в статус "Создан"
         IF :old.status = 'Подготовка' AND :new.status = 'Создан' THEN
-            -- Вычисляем стоимость заказа
-                                    DBMS_OUTPUT.PUT_LINE('1');
-    
+            -- Расчитываем суммарный вес заказа
+            FOR product IN products(:old.order_uid)
+            LOOP
+                SELECT weight INTO product_weight FROM Skvortsov_Product
+                WHERE product_uid = product.product_uid;
+
+                sum_weight := sum_weight + product_weight * product.quantity;
+            END LOOP;
+
+            -- вычисляем стоимость доставки
+            :new.delivery_price := delivery_const + delivery_factor * (FLOOR(sum_weight / factor_kg));
+        -- если заказ переходит из статуса "Создан"
+        ELSIF :old.status = 'Создан' THEN
+            :new.created_date := CURRENT_DATE; -- устанавливаем дату создания при переходе из статуса "Создан"
+            
+            -- вычисляем неделю до неделю после дня рождения
+            -- получаем дату рождения клиента
+            SELECT birthday INTO client_birthday FROM skvortsov_client
+            WHERE login = :old.client_uid;
+            
+            -- вычисляем разницу между текущим годом и годом рождения клиента
+            -- в результате получаем количество месяцев
+            dif_year := (EXTRACT(YEAR FROM :new.created_date) - EXTRACT(YEAR FROM client_birthday)) * 12;
+            
+            -- прибаляем полученные месяца к дате рождения клиента
+            -- теперь у даты рождения клиента год тот же, что и теущий
+            -- это упростит проверку диапазона
+            client_birthday := ADD_MONTHS(client_birthday, dif_year);
+
+            -- вычисляем неделю до и неделю после, относительно дня рождения
+            birthday_from := client_birthday - 7;
+            birthday_to := client_birthday + 7;
+
+            -- если у клиента день рождение и старая скидка меньше праздничной,
+            -- то устанавливаем праздничную скидку
+            IF (client_birthday BETWEEN birthday_from AND birthday_to)
+            AND :old.discount < birthday_discount THEN
+                :new.discount := birthday_discount;
+            END IF;
+
+            -- Вычисляем стоимость заказа, чтобы изменить стоимость доставки,
+            -- если заказ дороже 3000.
             FOR product IN products(:old.order_uid)
             LOOP
                 order_price := order_price + product.product_price;
             END LOOP;
-            -- вичсляем стоимость заказа
-            delivery_p := (order_price * :old.discount / 100);
-            order_price := order_price - delivery_p;
-    
-            -- если цена меньше 3000 то 
-            IF order_price <= 3000 THEN
-                -- Расчитываем суммарный вес заказа
-                FOR product IN products(:old.order_uid)
-                LOOP
-                    SELECT weight INTO product_weight FROM Skvortsov_Product
-                    WHERE product_uid = product.product_uid;
-    
-                    sum_weight := sum_weight + product_weight;
-                END LOOP;
-    
-                -- вычисляем стоимость доставки
-                :new.delivery_price := delivery_const + delivery_factor * (FLOOR(sum_weight / factor_kg));
-            ELSE
-                -- иначе доставка равна нулю
+
+            -- вычисляем стоимость заказа
+            discount_p := (1 - NVL(:old.discount, 0) / 100);
+
+            order_price := order_price * discount_p + :new.delivery_price;
+
+            IF order_price > 3000 THEN
                 :new.delivery_price := 0;
-            END IF;
-        -- если заказ переходит из статуса "Создан"
-        ELSIF :old.status = 'Создан' THEN
-                                DBMS_OUTPUT.PUT_LINE('2');
-    
-            :new.created_date := CURRENT_DATE; -- устанавливаем дату создания
-    
-            -- вычисляем неделю до неделю после дня рождения
-            SELECT birthday INTO birthday FROM skvortsov_client
-            WHERE login = :old.client_uid;
-    
-            birthday_from := birthday - 7;
-            birthday_to := birthday + 7;
-    
-            -- если у клиента день рождение и старая скидка меньше праздничной,
-            -- то устанавливаем праздничную скидку
-            IF (:new.created_date BETWEEN birthday_from AND birthday_to)
-            AND :old.discount < birthday_discount THEN
-                DBMS_OUTPUT.PUT_LINE('3');
-    
-                :new.discount := birthday_discount;
             END IF;
         -- если заказ отменяют, то проверяем статус заказа
         ELSIF :new.status = 'Отменён' THEN
             IF :old.status IN ('Подготовка', 'Получен') THEN
-                DBMS_OUTPUT.PUT_LINE('Заказа в статусе'||:old.status);
+                DBMS_OUTPUT.PUT_LINE('Заказа в статусе "'||:old.status||' ".');
                 RAISE Skvortsov_Store_Package.E_DONT_CANCEL_ORDER;
             END IF;
         END IF;
@@ -1419,16 +1579,32 @@ BEGIN
 END;
 /
 
--- Триггер проверяет условия при установке скидки
-create or replace TRIGGER Skvortsov_Tr_Give_Disc
-BEFORE UPDATE OF discount ON Skvortsov_Order
+-- Триггер проверяет условия при создании заказа и установке скидки
+CREATE OR REPLACE TRIGGER Skvortsov_Tr_Order
+BEFORE INSERT OR UPDATE OF discount ON Skvortsov_Order
     FOR EACH ROW
 DECLARE
+    error_exist BOOLEAN := FALSE;
+    client_count NUMBER;
 BEGIN
     IF UPDATING('discount') THEN
-        IF :old.status != 'Создан' THEN
-            DBMS_OUTPUT.PUT_LINE('Невозможно предоставить скидку для заказа со статусом "'||:old.status||'".');
+        IF :new.status != 'Создан' THEN
+            DBMS_OUTPUT.PUT_LINE('Невозможно предоставить скидку для заказа со статусом "'||:new.status||'".');
             RAISE Skvortsov_Store_Package.E_INVALID_STATUS_FOR_DISCOUNT;
+        END IF;
+    ELSIF INSERTING THEN
+        IF :new.client_uid IS NULL THEN
+            DBMS_OUTPUT.PUT_LINE('Поле client_uid не может быть пустым.');
+            error_exist := true;
+        END IF;
+    
+        IF :new.payment IS NULL THEN
+            DBMS_OUTPUT.PUT_LINE('Поле payment не может быть пустым.');
+             error_exist := true;
+        END IF;
+        
+        IF error_exist THEN
+            RAISE Skvortsov_Store_Package.E_NULL_INPUT_FIELD;
         END IF;
     END IF;
 END;
