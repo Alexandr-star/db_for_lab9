@@ -451,7 +451,7 @@ ALTER TABLE Skvortsov_Order ADD CONSTRAINT Check_Order_status CHECK(status IN ('
 ALTER TABLE Skvortsov_Order ADD CONSTRAINT PK_Order PRIMARY KEY (order_uid) ENABLE;
 
 ALTER TABLE Skvortsov_Order ADD CONSTRAINT FK_Order_Client FOREIGN KEY (client_uid)
-	REFERENCES Skvortsov_Client (login) ON DELETE CASCADE ENABLE;
+	REFERENCES Skvortsov_Client (login);
 
 ALTER TABLE Skvortsov_Order MODIFY (order_uid NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Order MODIFY (client_uid NOT NULL ENABLE);
@@ -478,7 +478,7 @@ ALTER TABLE Skvortsov_Product ADD CONSTRAINT Check_Order_stock CHECK(stock <= 10
 ALTER TABLE Skvortsov_Product ADD CONSTRAINT PK_Product PRIMARY KEY (product_uid) ENABLE;
 
 ALTER TABLE Skvortsov_Product ADD CONSTRAINT FK_Product_Peoduct_Type FOREIGN KEY (product_type)
-	REFERENCES Skvortsov_Product_Type (product_type) ON DELETE SET NULL ENABLE;
+	REFERENCES Skvortsov_Product_Type (product_type);
 
 ALTER TABLE Skvortsov_Product MODIFY (product_uid NOT NULL ENABLE);
 ALTER TABLE Skvortsov_Product MODIFY (name NOT NULL ENABLE);
@@ -524,7 +524,7 @@ create or replace PACKAGE Skvortsov_Store_Package AS
     E_DONT_CANCEL_ORDER EXCEPTION; -- Исключение о том, что заказ не может быть отменен
     E_WRONG_PHONE EXCEPTION; -- Исключение о неверном номере телефона
     
-    E_WRONG_VALUE_FROM_LIST EXCEPTION; -- Исключение об неверном поле клиента
+    E_WRONG_VALUE_FROM_LIST EXCEPTION; -- Исключение об невалидном значении, заданным клиента
     PRAGMA EXCEPTION_INIT(E_WRONG_VALUE_FROM_LIST, -02290);
     
     E_NULL_INPUT_FIELD EXCEPTION; -- Исключение о пустом значении вводимого поля пользователем
@@ -565,12 +565,6 @@ create or replace PACKAGE Skvortsov_Store_Package AS
     вход: номер заказа
     */
     PROCEDURE Cancel_Order(c_order_uid NUMBER);
-
-    /*
-    Процедура удаление продукта из заказа
-    вход: номер продукта, номер заказа
-    */
-    PROCEDURE Delete_Product_From_Order(c_order_uid NUMBER, c_product_uid NUMBER);
 
     /*
     Уменьшение количества продукта в заказе, если количество продукта уменьшается до 0, то этот продукт удаляется из заказа
@@ -703,6 +697,9 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         RETURN order_price;
     END Get_Order_Price;
 
+    /*
+    Функция возвращает количество товара в заказе
+    */
     FUNCTION Get_Product_Quantity_In_Order(c_order_uid NUMBER, c_product_uid NUMBER) RETURN NUMBER
     IS
         current_quantity NUMBER;
@@ -1020,36 +1017,7 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
                 DBMS_OUTPUT.PUT_LINE('Заказа с №'||c_order_uid||' невозможно отменить.');
     END Cancel_Order;
 
-    /*
-    Процедура удаление продукта из заказа
-    вход: номер продукта, номер заказа
-    */
-    PROCEDURE Delete_Product_From_Order(c_order_uid NUMBER, c_product_uid NUMBER)
-    IS
-    BEGIN
-       -- проверка, существет ли заказ и продукт
-        IF NOT Is_Product_Exist(c_product_uid) THEN
-            RAISE E_PRODUCT_NOT_EXIST;
-        ELSIF NOT Is_Order_Exist(c_order_uid) THEN
-            RAISE E_ORDER_NOT_EXIST;
-        ELSE
-            DELETE FROM skvortsov_ordered_product
-            WHERE order_uid = c_order_uid AND product_uid = c_product_uid;
-        
-            DBMS_OUTPUT.PUT_LINE('Продукт №'||c_product_uid||' дален из заказа №'||c_order_uid);
-            
-            COMMIT;
-        END IF;
-
-        EXCEPTION
-            WHEN E_WRONG_ORDER_STATUS THEN
-                DBMS_OUTPUT.PUT_LINE('Неверный статус заказа.');
-            WHEN E_PRODUCT_NOT_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Продукта с №'||c_product_uid||' нет в базе.');
-            WHEN E_ORDER_NOT_EXIST THEN
-                DBMS_OUTPUT.PUT_LINE('Заказа с №'||c_order_uid||' нет в базе.');
-    END Delete_Product_From_Order;
-
+    -- TODO: Переделать метод, удалять убрать переменную с_quantity , уменьшаем количество на 1
     /*
     Уменьшение количества продукта в заказе, если количество продукта уменьшается до 0, то этот продукт удаляется из заказа
     вход: номер заказа, номер продукта, количество товара
@@ -1116,7 +1084,6 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
             UPDATE Skvortsov_Product
             SET stock = new_quantity_in_stock
             WHERE product_uid = с_product_uid;
-
 
             DBMS_OUTPUT.PUT_LINE('Количество продукции с №'||с_product_uid||' увеличено на '||c_quantity||' пунктов.');
             
@@ -1466,26 +1433,7 @@ BEGIN
     END IF;
 END;
 /
--- Триггер проверяет статус заказа и наличие товара, при удалении 
--- пустых заказов, и вызывает соответсвующие исключения
-create or replace TRIGGER Skvortsov_Tr_Drop_Emp_Order
-AFTER DELETE ON Skvortsov_Order
-    FOR EACH ROW
-DECLARE
-    prepere_order NUMBER;
-    empty_order NUMBER;
-    PRAGMA AUTONOMOUS_TRANSACTION;
-BEGIN
-    SELECT COUNT(*) INTO empty_order FROM Skvortsov_Order
-        WHERE status = 'Подготовка' 
-        AND (SELECT COUNT(*) FROM Skvortsov_Ordered_Product
-             WHERE order_uid = Skvortsov_Order.order_uid) = 0;
 
-    IF empty_order = 0 THEN
-        RAISE Skvortsov_Store_Package.E_NO_EMPTY_ORDERS;
-    END IF;
-END;
-/
 -- Триггер обрабатывающий обновление статуса заказа
 create or replace TRIGGER Skvortsov_Tr_Status_Order
 BEFORE UPDATE OF status ON Skvortsov_Order
@@ -1553,21 +1501,6 @@ BEGIN
                 :new.discount := birthday_discount;
             END IF;
 
-            -- Вычисляем стоимость заказа, чтобы изменить стоимость доставки,
-            -- если заказ дороже 3000.
-            FOR product IN products(:old.order_uid)
-            LOOP
-                order_price := order_price + product.product_price;
-            END LOOP;
-
-            -- вычисляем стоимость заказа
-            discount_p := (1 - NVL(:old.discount, 0) / 100);
-
-            order_price := order_price * discount_p + :new.delivery_price;
-
-            IF order_price > 3000 THEN
-                :new.delivery_price := 0;
-            END IF;
         -- если заказ отменяют, то проверяем статус заказа
         ELSIF :new.status = 'Отменён' THEN
             IF :old.status IN ('Подготовка', 'Получен') THEN
@@ -1588,7 +1521,7 @@ DECLARE
     client_count NUMBER;
 BEGIN
     IF UPDATING('discount') THEN
-        IF :new.status != 'Создан' THEN
+        IF :new.status NOT IN ('Создан', 'Подготовка') THEN
             DBMS_OUTPUT.PUT_LINE('Невозможно предоставить скидку для заказа со статусом "'||:new.status||'".');
             RAISE Skvortsov_Store_Package.E_INVALID_STATUS_FOR_DISCOUNT;
         END IF;
@@ -1609,3 +1542,22 @@ BEGIN
     END IF;
 END;
 /
+
+
+-- notes
+--------------------------
+-- Вычисляем стоимость заказа, чтобы изменить стоимость доставки,
+            -- если заказ дороже 3000.
+            -- FOR product IN products(:old.order_uid)
+            -- LOOP
+            --     order_price := order_price + product.product_price;
+            -- END LOOP;
+
+            -- -- вычисляем стоимость заказа
+            -- discount_p := (1 - NVL(:old.discount, 0) / 100);
+
+            -- order_price := order_price * discount_p + :new.delivery_price;
+
+            -- IF order_price > 3000 THEN
+            --     :new.delivery_price := 0;
+            -- END IF;
