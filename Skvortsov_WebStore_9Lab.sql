@@ -678,19 +678,20 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
     IS
         order_price NUMBER := 0;
         order_discount NUMBER;
-        order_delivery NUMBER;            
+        order_delivery NUMBER := 0;            
     BEGIN
         -- считаем общую суму продуктов
-        SELECT SUM(product_price) INTO order_price FROM Skvortsov_Ordered_Product
+        SELECT SUM(product_price * quantity) INTO order_price FROM Skvortsov_Ordered_Product
             WHERE order_uid = c_order_uid;
 
         -- получаем скидку и доставку
         SELECT discount INTO order_discount FROM Skvortsov_Order
         WHERE order_uid = c_order_uid;
 
-        SELECT delivery_price INTO order_delivery FROM Skvortsov_Order
-        WHERE order_uid = c_order_uid;
-
+        IF order_price <= 3000 THEN
+            SELECT delivery_price INTO order_delivery FROM Skvortsov_Order
+            WHERE order_uid = c_order_uid;
+        END IF;
         -- вычисляем общую сумму заказ
         order_price := order_price * (1 - NVL(order_discount, 0) / 100) + order_delivery;
 
@@ -883,18 +884,6 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
             RAISE E_ORDER_IS_RECEIVED;
         -- если заказ в статусе "Подготовка", то он переходит в "Создан"
         ELSIF status_order = 'Подготовка' THEN
-            FOR product IN products(c_order_uid)
-            LOOP
-            -- Фиксируем стоимость суммарную стоимость для каждого из товаров
-                SELECT price INTO p_price FROM Skvortsov_Product
-                WHERE product_uid = product.product_uid;
-        
-                UPDATE Skvortsov_Ordered_Product
-                SET product_price = p_price * product.quantity
-                WHERE order_uid = c_order_uid AND product_uid = product.product_uid;
-                
-            END LOOP;
-            
             UPDATE skvortsov_order
             SET status = 'Создан'
             WHERE order_uid = c_order_uid;
@@ -1273,6 +1262,38 @@ create or replace PACKAGE BODY Skvortsov_Store_Package AS
         END LOOP;
     END Get_Client_List;
 
+    PROCEDURE Get_Profit_Shop
+    IS
+        received_profit NUMBER := 0;
+        potential_profit NUMBER := 0;
+        sum_profit NUMBER := 0;
+    -- курсор для поулчения полученной прибыли магазина
+        CURSOR received IS
+            SELECT order_uid FROM Skvortsov_Order
+            WHERE status = 'Получен';
+        -- курсор для получения потонцеальной прибыли
+        CURSOR potential IS
+            SELECT order_uid FROM Skvortsov_Order
+            WHERE status IN ('Создан', 'Оплачен', 'Комплектация', 'Отправлен');
+    BEGIN
+        -- получаем прибыль по завершенным заказм
+        FOR ord IN received
+        LOOP
+            received_profit := received_profit + Get_Order_Price(ord.order_uid);
+        END LOOP;
+        -- получаем потонцеальную прибыть магазина
+        FOR ord IN potential
+        LOOP
+            potential_profit :=  potential_profit + Get_Order_Price(ord.order_uid);
+        END LOOP;
+        
+        sum_profit := received_profit + potential_profit;
+        
+        DBMS_OUTPUT.PUT_LINE(' Полученная прибыль: '||received_profit);
+        DBMS_OUTPUT.PUT_LINE(' Потонцеальная прибыль: '||potential_profit);
+        DBMS_OUTPUT.PUT_LINE(' Суммарная прибыль: '||sum_profit);
+    END Get_Profit_Shop;
+
 END Skvortsov_Store_Package;
 /
 
@@ -1447,6 +1468,7 @@ DECLARE
     birthday_discount NUMBER := 5; -- скидка на день рождения
     in_stock NUMBER; -- количество товара на складе
     product_weight NUMBER; -- вес товара
+    product_price NUMBER; -- вес товара
     sum_weight NUMBER := 0; -- суммарный вес товара
     delivery_const NUMBER := 50; -- цена доставки по умолчанию
     delivery_factor NUMBER := 10; -- множитель 1 кг
@@ -1454,16 +1476,23 @@ DECLARE
     order_price NUMBER := 0; -- цена заказа
     discount_p NUMBER; -- скидка
     CURSOR products (ord NUMBER) IS
-        SELECT product_uid, quantity, product_price FROM Skvortsov_Ordered_Product
+        SELECT product_uid, quantity FROM Skvortsov_Ordered_Product
         WHERE order_uid = ord;
 BEGIN        
     -- выполняем действия, если обновляется поле status
     IF UPDATING('status') THEN
         -- если заказ переходит в статус "Создан"
         IF :old.status = 'Подготовка' AND :new.status = 'Создан' THEN
-            -- Расчитываем суммарный вес заказа
+            -- Расчитываем суммарный вес заказа и фиксируем стоимость товаров
             FOR product IN products(:old.order_uid)
             LOOP
+                SELECT price INTO product_price FROM Skvortsov_Product
+                WHERE product_uid = product.product_uid;
+
+                UPDATE Skvortsov_Ordered_Product
+                SET product_price = product_price
+                WHERE order_uid = c_order_uid AND product_uid = product.product_uid;
+
                 SELECT weight INTO product_weight FROM Skvortsov_Product
                 WHERE product_uid = product.product_uid;
 
